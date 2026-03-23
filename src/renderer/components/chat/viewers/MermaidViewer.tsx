@@ -1,4 +1,4 @@
-import React, { useEffect, useId, useRef, useState } from 'react';
+import React, { useEffect, useId, useState } from 'react';
 
 import { CopyButton } from '@renderer/components/common/CopyButton';
 import {
@@ -9,6 +9,7 @@ import {
   PROSE_PRE_BG,
   PROSE_PRE_BORDER,
 } from '@renderer/constants/cssVariables';
+import { useTheme } from '@renderer/hooks/useTheme';
 import { Code, GitBranch } from 'lucide-react';
 import mermaid from 'mermaid';
 
@@ -16,17 +17,20 @@ import mermaid from 'mermaid';
 // Mermaid initialization
 // =============================================================================
 
-let mermaidInitialized = false;
+let lastMermaidTheme: 'dark' | 'default' | null = null;
 
 function ensureMermaidInit(isDark: boolean): void {
-  const theme = isDark ? 'dark' : 'default';
+  const theme: 'dark' | 'default' = isDark ? 'dark' : 'default';
+  if (lastMermaidTheme === theme) {
+    return;
+  }
   mermaid.initialize({
     startOnLoad: false,
     theme,
     securityLevel: 'strict',
     fontFamily: 'ui-sans-serif, system-ui, sans-serif',
   });
-  mermaidInitialized = true;
+  lastMermaidTheme = theme;
 }
 
 // =============================================================================
@@ -39,30 +43,10 @@ interface MermaidViewerProps {
 
 export const MermaidViewer: React.FC<MermaidViewerProps> = ({ code }) => {
   const uniqueId = useId().replace(/:/g, '-');
-  const containerRef = useRef<HTMLDivElement>(null);
   const [showCode, setShowCode] = useState(false);
   const [svg, setSvg] = useState<string>('');
   const [error, setError] = useState<string | null>(null);
-  const [isDark, setIsDark] = useState(
-    () =>
-      document.documentElement.classList.contains('dark') ||
-      !document.documentElement.classList.contains('light')
-  );
-
-  // Watch theme changes
-  useEffect(() => {
-    const observer = new MutationObserver(() => {
-      const dark =
-        document.documentElement.classList.contains('dark') ||
-        !document.documentElement.classList.contains('light');
-      setIsDark(dark);
-    });
-    observer.observe(document.documentElement, {
-      attributes: true,
-      attributeFilter: ['class'],
-    });
-    return () => observer.disconnect();
-  }, []);
+  const { isDark } = useTheme();
 
   // Render mermaid diagram
   useEffect(() => {
@@ -78,6 +62,7 @@ export const MermaidViewer: React.FC<MermaidViewerProps> = ({ code }) => {
         }
       } catch (err) {
         if (!cancelled) {
+          console.error('Failed to render mermaid diagram:', err);
           setError(err instanceof Error ? err.message : 'Failed to render mermaid diagram');
           setSvg('');
         }
@@ -88,13 +73,6 @@ export const MermaidViewer: React.FC<MermaidViewerProps> = ({ code }) => {
       cancelled = true;
     };
   }, [code, isDark, uniqueId]);
-
-  // Re-initialize mermaid when theme changes
-  useEffect(() => {
-    if (mermaidInitialized) {
-      mermaidInitialized = false;
-    }
-  }, [isDark]);
 
   return (
     <div
@@ -158,7 +136,6 @@ export const MermaidViewer: React.FC<MermaidViewerProps> = ({ code }) => {
         </div>
       ) : svg ? (
         <div
-          ref={containerRef}
           className="flex justify-center overflow-auto p-4"
           dangerouslySetInnerHTML={{ __html: svg }}
         />
