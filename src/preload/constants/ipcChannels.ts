@@ -179,6 +179,13 @@ export const APP_RELAUNCH = 'app:relaunch';
 export const SESSION_REFRESH = 'session:refresh';
 
 // =============================================================================
+// Droid Config API Channels
+// =============================================================================
+
+/** Get droid definitions from ~/.factory/droids/ */
+export const GET_DROID_CONFIGS = 'get-droid-configs';
+
+// =============================================================================
 // Search API Channels
 // =============================================================================
 

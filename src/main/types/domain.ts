@@ -134,6 +134,36 @@ export interface SessionMetrics {
 }
 
 // =============================================================================
+// Droid Session Settings
+// =============================================================================
+
+/**
+ * Session settings from Droid's {sessionId}.settings.json files.
+ * Contains model, autonomy level, tags, and aggregate token usage.
+ */
+export interface DroidSessionSettings {
+  assistantActiveTimeMs: number;
+  model: string;
+  reasoningEffort: string;
+  interactionMode: string;
+  autonomyLevel: 'off' | 'light' | 'medium' | 'high';
+  autonomyMode: string;
+  specModeModel?: string;
+  specModeReasoningEffort?: string;
+  tags: { name: string }[];
+  providerLock?: string;
+  providerLockTimestamp?: string;
+  apiProviderLock?: string;
+  tokenUsage: {
+    inputTokens: number;
+    outputTokens: number;
+    cacheCreationTokens: number;
+    cacheReadTokens: number;
+    thinkingTokens: number;
+  };
+}
+
+// =============================================================================
 // Repository & Worktree Grouping Types
 // =============================================================================
 

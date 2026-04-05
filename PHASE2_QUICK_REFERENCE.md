@@ -26,7 +26,7 @@ Every message must be unwrapped, and session metadata moved to explicit `session
   "sessionTitle": "# Worker Brief: project-scaffold ...",
   "owner": "cana",
   "version": 2,
-  "cwd": "/Users/cana/workspace/droid-devtools"
+  "cwd": "/Users/username/workspace/droid-devtools"
 }
 ```
 **Use**: Extract authoritative `cwd`, `title`, `owner` at session start.
@@ -127,7 +127,7 @@ Every message must be unwrapped, and session metadata moved to explicit `session
 
 **Sample Droid JSONL files**:
 ```
-~/.factory/sessions/-Users-cana-workspace-droid-devtools/
+~/.factory/sessions/-Users-username-workspace-droid-devtools/
   9252660f-001f-4aaf-8e6f-4811c456a372.jsonl          (44KB, ~100 entries)
   9252660f-001f-4aaf-8e6f-4811c456a372.settings.json  (metadata)
   
@@ -140,13 +140,13 @@ Every message must be unwrapped, and session metadata moved to explicit `session
 **To inspect**:
 ```bash
 # Show first 5 entries
-head -5 ~/.factory/sessions/-Users-cana-workspace-droid-devtools/9252660f-001f-4aaf-8e6f-4811c456a372.jsonl | jq '.'
+head -5 ~/.factory/sessions/-Users-username-workspace-droid-devtools/9252660f-001f-4aaf-8e6f-4811c456a372.jsonl | jq '.'
 
 # Count entry types
-grep -o '"type":"[^"]*"' ~/.factory/sessions/-Users-cana-workspace-droid-devtools/9252660f-001f-4aaf-8e6f-4811c456a372.jsonl | sort | uniq -c
+grep -o '"type":"[^"]*"' ~/.factory/sessions/-Users-username-workspace-droid-devtools/9252660f-001f-4aaf-8e6f-4811c456a372.jsonl | sort | uniq -c
 
 # Read settings
-cat ~/.factory/sessions/-Users-cana-workspace-droid-devtools/9252660f-001f-4aaf-8e6f-4811c456a372.settings.json | jq '.'
+cat ~/.factory/sessions/-Users-username-workspace-droid-devtools/9252660f-001f-4aaf-8e6f-4811c456a372.settings.json | jq '.'
 ```
 
 ---

@@ -41,6 +41,24 @@ export interface AgentConfig {
 }
 
 // =============================================================================
+// Droid Config
+// =============================================================================
+
+/**
+ * Droid definition read from ~/.factory/droids/*.md (or *.yaml) files.
+ */
+export interface DroidConfig {
+  /** Droid name (from frontmatter or filename) */
+  name: string;
+  /** Short description of the droid's purpose */
+  description?: string;
+  /** Optional color hint for display */
+  color?: string;
+  /** Source filename (basename) */
+  filename: string;
+}
+
+// =============================================================================
 // Notifications API
 // =============================================================================
 
@@ -381,6 +399,9 @@ export interface ElectronAPI {
 
   // Agent config reading
   readAgentConfigs: (projectRoot: string) => Promise<Record<string, AgentConfig>>;
+
+  // Droid config reading (global ~/.factory/droids/)
+  getDroidConfigs: () => Promise<DroidConfig[]>;
 
   // Notifications API
   notifications: NotificationsAPI;

@@ -11,15 +11,18 @@
 import { createLogger } from '@shared/utils/logger';
 import { app, type IpcMain, type IpcMainInvokeEvent, shell } from 'electron';
 import * as fs from 'fs';
+import * as path from 'path';
 
 import {
   type AgentsMdFileInfo,
   readAgentConfigs,
   readAllAgentsMdFiles,
   readDirectoryAgentsMd,
+  readDroidConfigs,
 } from '../services';
+import { getFactoryBasePath } from '../utils/pathDecoder';
 
-import type { AgentConfig } from '@shared/types/api';
+import type { AgentConfig, DroidConfig } from '@shared/types/api';
 
 const logger = createLogger('IPC:utility');
 import { validateFilePath, validateOpenPath } from '../utils/pathValidation';
@@ -36,6 +39,7 @@ export function registerUtilityHandlers(ipcMain: IpcMain): void {
   ipcMain.handle('read-directory-agents-md', handleReadDirectoryAgentsMd);
   ipcMain.handle('read-mentioned-file', handleReadMentionedFile);
   ipcMain.handle('read-agent-configs', handleReadAgentConfigs);
+  ipcMain.handle('get-droid-configs', handleGetDroidConfigs);
 
   logger.info('Utility handlers registered');
 }
@@ -51,6 +55,7 @@ export function removeUtilityHandlers(ipcMain: IpcMain): void {
   ipcMain.removeHandler('read-directory-agents-md');
   ipcMain.removeHandler('read-mentioned-file');
   ipcMain.removeHandler('read-agent-configs');
+  ipcMain.removeHandler('get-droid-configs');
 
   logger.info('Utility handlers removed');
 }
@@ -255,5 +260,19 @@ async function handleReadAgentConfigs(
   } catch (error) {
     logger.error('Error in read-agent-configs:', error);
     return {};
+  }
+}
+
+/**
+ * Handler for 'get-droid-configs' IPC call.
+ * Reads droid definitions from global ~/.factory/droids/ directory.
+ */
+async function handleGetDroidConfigs(_event: IpcMainInvokeEvent): Promise<DroidConfig[]> {
+  try {
+    const droidsDir = path.join(getFactoryBasePath(), 'droids');
+    return await readDroidConfigs(droidsDir);
+  } catch (error) {
+    logger.error('Error in get-droid-configs:', error);
+    return [];
   }
 }

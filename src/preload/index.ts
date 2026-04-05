@@ -179,6 +179,9 @@ const electronAPI: ElectronAPI = {
   // Agent config reading
   readAgentConfigs: (projectRoot: string) => ipcRenderer.invoke('read-agent-configs', projectRoot),
 
+  // Droid config reading (global ~/.factory/droids/)
+  getDroidConfigs: () => ipcRenderer.invoke('get-droid-configs'),
+
   // Notifications API
   notifications: {
     get: (options?: { limit?: number; offset?: number }) =>

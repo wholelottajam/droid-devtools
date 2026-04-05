@@ -43,7 +43,7 @@ import type {
   WaterfallData,
   WslFactoryRootCandidate,
 } from '@shared/types';
-import type { AgentConfig } from '@shared/types/api';
+import type { AgentConfig, DroidConfig } from '@shared/types/api';
 
 export class HttpAPIClient implements ElectronAPI {
   private baseUrl: string;
@@ -326,6 +326,8 @@ export class HttpAPIClient implements ElectronAPI {
 
   readAgentConfigs = (projectRoot: string): Promise<Record<string, AgentConfig>> =>
     this.post<Record<string, AgentConfig>>('/api/read-agent-configs', { projectRoot });
+
+  getDroidConfigs = (): Promise<DroidConfig[]> => this.get<DroidConfig[]>('/api/get-droid-configs');
 
   // ---------------------------------------------------------------------------
   // Notifications (nested API)

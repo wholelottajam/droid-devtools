@@ -16,6 +16,7 @@
 
 // Domain types
 export type {
+  DroidSessionSettings,
   PhaseTokenBreakdown,
   Project,
   RepositoryGroup,

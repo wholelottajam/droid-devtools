@@ -4,7 +4,7 @@
 
 ### System Locations
 - **Factory sessions**: `~/.factory/sessions/` (587 total .jsonl files across projects)
-- **Sample session directory**: `/Users/akincifca/.factory/sessions/-Users-cana-workspace-droid-devtools/`
+- **Sample session directory**: `/Users/username/.factory/sessions/-Users-username-workspace-droid-devtools/`
   - Contains multiple `.jsonl` files (session records)
   - Each paired with `.settings.json` (session metadata)
 - **Example file**: `9252660f-001f-4aaf-8e6f-4811c456a372.jsonl` (44KB, ~100+ entries)
@@ -46,7 +46,7 @@ Key files tracking paths:
   "sessionTitle": "# Worker Brief: project-scaffold ...",
   "owner": "cana",
   "version": 2,
-  "cwd": "/Users/cana/workspace/droid-devtools"
+  "cwd": "/Users/username/workspace/droid-devtools"
 }
 
 // 2. MESSAGE - Wrapped in .message field
@@ -245,7 +245,7 @@ No changes needed to content block parsing — they're already generic.
 ## Test Data Available
 
 ### Location
-- `~/.factory/sessions/-Users-cana-workspace-droid-devtools/` — test fixtures with actual Droid format
+- `~/.factory/sessions/-Users-username-workspace-droid-devtools/` — test fixtures with actual Droid format
   - Multiple `.jsonl` files (different session histories)
   - Each has paired `.settings.json`
 

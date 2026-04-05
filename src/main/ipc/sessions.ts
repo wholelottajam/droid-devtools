@@ -11,8 +11,10 @@
 
 import { createLogger } from '@shared/utils/logger';
 import { type IpcMain, type IpcMainInvokeEvent } from 'electron';
+import * as path from 'path';
 
 import { DataCache } from '../services';
+import { readSessionSettingsById } from '../services/parsing/SessionSettingsReader';
 import {
   type ConversationGroup,
   type PaginatedSessionsResult,
@@ -22,6 +24,7 @@ import {
   type SessionsByIdsOptions,
   type SessionsPaginationOptions,
 } from '../types';
+import { getProjectsBasePath } from '../utils/pathDecoder';
 
 import { coercePageLimit, validateProjectId, validateSessionId } from './guards';
 
@@ -245,6 +248,11 @@ async function handleGetSessionDetail(
 
       // Build session detail with chunks
       sessionDetail = chunkBuilder.buildSessionDetail(session, parsedSession.messages, subagents);
+
+      // Read Droid session settings from companion .settings.json file
+      const sessionDir = path.join(getProjectsBasePath(), safeProjectId);
+      const droidSettings = await readSessionSettingsById(sessionDir, safeSessionId);
+      sessionDetail = { ...sessionDetail, droidSettings };
 
       // Cache the result
       dataCache.set(cacheKey, sessionDetail);

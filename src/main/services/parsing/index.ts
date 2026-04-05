@@ -10,6 +10,7 @@
 
 export * from './AgentConfigReader';
 export * from './AgentsMdReader';
+export * from './DroidConfigReader';
 export * from './GitIdentityResolver';
 export * from './MessageClassifier';
 export * from './SessionParser';

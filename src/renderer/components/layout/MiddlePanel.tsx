@@ -1,6 +1,7 @@
 import React from 'react';
 
 import { ChatHistory } from '../chat/ChatHistory';
+import { SessionSettingsBadge } from '../chat/SessionSettingsBadge';
 import { SearchBar } from '../search/SearchBar';
 
 interface MiddlePanelProps {
@@ -12,6 +13,7 @@ export const MiddlePanel: React.FC<MiddlePanelProps> = ({ tabId }) => {
   return (
     <div className="relative flex h-full flex-col">
       <SearchBar tabId={tabId} />
+      <SessionSettingsBadge tabId={tabId} />
       <ChatHistory tabId={tabId} />
     </div>
   );

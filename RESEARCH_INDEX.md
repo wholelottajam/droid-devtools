@@ -61,7 +61,7 @@ Each session has `{sessionId}.settings.json` with:
 
 ### 4. Test Data
 587 Droid JSONL files available in `~/.factory/sessions/`:
-- **Sample**: `~/.factory/sessions/-Users-cana-workspace-droid-devtools/`
+- **Sample**: `~/.factory/sessions/-Users-username-workspace-droid-devtools/`
 - **Example file**: `9252660f-001f-4aaf-8e6f-4811c456a372.jsonl` (44KB, 100+ entries)
 - **Paired settings**: `9252660f-001f-4aaf-8e6f-4811c456a372.settings.json`
 - Ready for testing and verification
@@ -121,8 +121,8 @@ src/main/services/analysis/ChunkBuilder.ts       [Verify] - Should work as-is
 1. **Read PHASE2_QUICK_REFERENCE.md** — Get the checklist and entry types
 2. **Review sample data** (commands in reference):
    ```bash
-   head -5 ~/.factory/sessions/-Users-cana-workspace-droid-devtools/9252660f-001f-4aaf-8e6f-4811c456a372.jsonl | jq '.'
-   cat ~/.factory/sessions/-Users-cana-workspace-droid-devtools/9252660f-001f-4aaf-8e6f-4811c456a372.settings.json | jq '.'
+   head -5 ~/.factory/sessions/-Users-username-workspace-droid-devtools/9252660f-001f-4aaf-8e6f-4811c456a372.jsonl | jq '.'
+   cat ~/.factory/sessions/-Users-username-workspace-droid-devtools/9252660f-001f-4aaf-8e6f-4811c456a372.settings.json | jq '.'
    ```
 3. **Start with types** — Add DroidMessageEntry, SessionStartEntry, TodoStateEntry to jsonl.ts
 4. **Implement SessionSettingsReader** — New class for loading .settings.json

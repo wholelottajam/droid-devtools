@@ -5,33 +5,14 @@
  * session-level metadata: model, provider, autonomy, tags, and aggregate token usage.
  */
 
+import { type DroidSessionSettings } from '@main/types/domain';
 import { createLogger } from '@shared/utils/logger';
 import * as fs from 'fs/promises';
 import * as path from 'path';
 
 const logger = createLogger('Service:SessionSettingsReader');
 
-export interface DroidSessionSettings {
-  assistantActiveTimeMs: number;
-  model: string;
-  reasoningEffort: string;
-  interactionMode: string;
-  autonomyLevel: 'off' | 'light' | 'medium' | 'high';
-  autonomyMode: string;
-  specModeModel?: string;
-  specModeReasoningEffort?: string;
-  tags: { name: string }[];
-  providerLock?: string;
-  providerLockTimestamp?: string;
-  apiProviderLock?: string;
-  tokenUsage: {
-    inputTokens: number;
-    outputTokens: number;
-    cacheCreationTokens: number;
-    cacheReadTokens: number;
-    thinkingTokens: number;
-  };
-}
+export type { DroidSessionSettings };
 
 /**
  * Read the .settings.json file for a Droid session.

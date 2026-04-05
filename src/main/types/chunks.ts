@@ -12,7 +12,7 @@
  * - Constants
  */
 
-import { type Session, type SessionMetrics } from './domain';
+import { type DroidSessionSettings, type Session, type SessionMetrics } from './domain';
 import { type ToolUseResultData } from './jsonl';
 import { type ParsedMessage, type ToolCall, type ToolResult } from './messages';
 
@@ -401,6 +401,8 @@ export interface SessionDetail {
   processes: Process[];
   /** Aggregated metrics for the entire session */
   metrics: SessionMetrics;
+  /** Droid session settings from companion .settings.json file */
+  droidSettings?: DroidSessionSettings | null;
 }
 
 /**
