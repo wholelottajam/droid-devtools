@@ -12,6 +12,7 @@ import {
   findTabBySessionAndProject,
   truncateLabel,
 } from '@renderer/types/tabs';
+import { generateUUID } from '@renderer/utils/stringUtils';
 
 import {
   findPane,
@@ -22,7 +23,6 @@ import {
   updatePane,
 } from '../utils/paneHelpers';
 import { getFullResetState } from '../utils/stateResetHelpers';
-import { generateUUID } from '@renderer/utils/stringUtils';
 
 import type { AppState, SearchNavigationContext } from '../types';
 import type { PaneLayout } from '@renderer/types/panes';
