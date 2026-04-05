@@ -109,6 +109,10 @@ export interface Session {
   compactionCount?: number;
   /** Per-phase token breakdown for tooltip display */
   phaseBreakdown?: PhaseTokenBreakdown[];
+  /** Cache hit rate (0–1): cacheReadTokens / (cacheReadTokens + freshInputTokens) */
+  cacheHitRate?: number;
+  /** Primary model string seen in session (last assistant model) */
+  primaryModel?: string;
 }
 
 /**

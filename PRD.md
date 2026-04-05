@@ -9,7 +9,7 @@
 | Phase 3: Branding | DONE (2026-04-05) | CLAUDE.md→AGENTS.md, ClaudeMd→AgentsMd types, UI strings, package.json |
 | Phase 4: Droid UI Features | DONE (2026-04-05) | Settings badge (model/autonomy/tags), DroidList sidebar; 4C (Mission Control) deferred per PRD |
 | Phase 5-Basic: Token Analysis Foundations | DONE (2026-04-06) | Multi-provider model parser, model weights, cache efficiency, TokenUsageDisplay enhancements |
-| Phase 5-Advanced: Token Analysis UI | NOT STARTED | Depends on Phase 5-Basic |
+| Phase 5-Advanced: Token Analysis UI | DONE (2026-04-06) | 5D What-If panel, 5E token trends chart, 5G session list cache dot + model badge |
 
 ---
 

@@ -19,6 +19,8 @@ const logger = createLogger('Component:DashboardView');
 import { formatDistanceToNow } from 'date-fns';
 import { Command, FolderGit2, FolderOpen, GitBranch, Search, Settings } from 'lucide-react';
 
+import { TokenTrendsView } from './TokenTrendsView';
+
 import type { RepositoryGroup } from '@renderer/types/data';
 
 // =============================================================================
@@ -443,6 +445,9 @@ export const DashboardView = (): React.JSX.Element => {
 
         {/* Projects Grid */}
         <ProjectsGrid searchQuery={searchQuery} />
+
+        {/* Token Trends (shown when a project is selected and has session data) */}
+        <TokenTrendsView />
       </div>
     </div>
   );

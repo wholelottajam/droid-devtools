@@ -425,6 +425,10 @@ export interface SessionFileMetadata {
   /** Per-phase token breakdown */
   phaseBreakdown?: PhaseTokenBreakdown[];
   hasDisplayableContent: boolean;
+  /** Cache hit rate (0–1): cacheReadTokens / (cacheReadTokens + freshInputTokens) */
+  cacheHitRate?: number;
+  /** Last model string seen in assistant messages */
+  primaryModel?: string;
 }
 
 /**
@@ -469,11 +473,16 @@ export async function analyzeSessionFileMetadata(
   const shutdownToolIds = new Set<string>();
 
   // Context consumption tracking
-
   let lastMainAssistantInputTokens = 0;
   const compactionPhases: { pre: number; post: number }[] = [];
-
   let awaitingPostCompaction = false;
+
+  // Cache efficiency tracking
+
+  let totalScanInputTokens = 0;
+
+  let totalScanCacheReadTokens = 0;
+  let lastSeenModel: string | undefined;
 
   for await (const line of rl) {
     const trimmed = line.trim();
@@ -662,6 +671,12 @@ export async function analyzeSessionFileMetadata(
         }
         lastMainAssistantInputTokens = inputTokens;
       }
+      // Cache efficiency tracking
+      totalScanInputTokens += parsed.usage?.input_tokens ?? 0;
+      totalScanCacheReadTokens += parsed.usage?.cache_read_input_tokens ?? 0;
+      if (parsed.model) {
+        lastSeenModel = parsed.model;
+      }
     }
 
     // Context consumption: detect compaction events
@@ -730,6 +745,9 @@ export async function analyzeSessionFileMetadata(
     }
   }
 
+  const totalForCache = totalScanInputTokens + totalScanCacheReadTokens;
+  const cacheHitRate = totalForCache > 0 ? totalScanCacheReadTokens / totalForCache : undefined;
+
   return {
     firstUserMessage:
       firstUserMessage ??
@@ -744,5 +762,7 @@ export async function analyzeSessionFileMetadata(
     compactionCount: compactionPhases.length > 0 ? compactionPhases.length : undefined,
     phaseBreakdown,
     hasDisplayableContent,
+    cacheHitRate,
+    primaryModel: lastSeenModel,
   };
 }

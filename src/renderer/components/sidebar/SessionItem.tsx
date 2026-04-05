@@ -8,6 +8,7 @@ import React, { useCallback, useRef, useState } from 'react';
 import { createPortal } from 'react-dom';
 
 import { useStore } from '@renderer/store';
+import { parseModelString } from '@shared/utils/modelParser';
 import { formatTokensCompact } from '@shared/utils/tokenFormatting';
 import { formatDistanceToNowStrict } from 'date-fns';
 import { EyeOff, MessageSquare, Pin } from 'lucide-react';
@@ -49,6 +50,28 @@ function formatShortTime(date: Date): string {
     .replace(' month', 'mo')
     .replace(' years', 'y')
     .replace(' year', 'y');
+}
+
+/**
+ * Cache efficiency dot color: green (>70%), yellow (40-70%), red (<40%).
+ */
+function cacheHitColor(rate: number): string {
+  if (rate >= 0.7) return '#4ade80'; // green
+  if (rate >= 0.4) return '#fbbf24'; // yellow
+  return '#f87171'; // red
+}
+
+/**
+ * Short display name from a raw model string, e.g. "claude-sonnet-4-6" → "sonnet4.6"
+ */
+function shortModelName(modelStr: string): string {
+  const info = parseModelString(modelStr);
+  if (!info) return modelStr.slice(0, 10);
+  const ver =
+    info.minorVersion != null
+      ? `${info.majorVersion}.${info.minorVersion}`
+      : `${info.majorVersion}`;
+  return `${info.family}${ver}`;
 }
 
 /**
@@ -294,6 +317,22 @@ export const SessionItem = React.memo(function SessionItem({
                 phaseBreakdown={session.phaseBreakdown}
               />
             </>
+          )}
+          {session.cacheHitRate != null && (
+            <span
+              className="inline-block size-1.5 shrink-0 rounded-full"
+              style={{ backgroundColor: cacheHitColor(session.cacheHitRate) }}
+              title={`Cache: ${Math.round(session.cacheHitRate * 100)}%`}
+            />
+          )}
+          {session.primaryModel && (
+            <span
+              className="truncate font-mono"
+              style={{ color: 'var(--color-text-muted)', maxWidth: '52px', fontSize: '9px' }}
+              title={session.primaryModel}
+            >
+              {shortModelName(session.primaryModel)}
+            </span>
           )}
         </div>
       </button>

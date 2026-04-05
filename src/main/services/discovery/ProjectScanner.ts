@@ -770,6 +770,8 @@ export class ProjectScanner {
       contextConsumption: metadata.contextConsumption,
       compactionCount: metadata.compactionCount,
       phaseBreakdown: metadata.phaseBreakdown,
+      cacheHitRate: metadata.cacheHitRate,
+      primaryModel: metadata.primaryModel,
     };
   }
 
