@@ -9,7 +9,7 @@
  * - Handle JSON parse errors gracefully
  */
 
-import { setClaudeBasePathOverride } from '@main/utils/pathDecoder';
+import { setFactoryBasePathOverride } from '@main/utils/pathDecoder';
 import { validateRegexPattern } from '@main/utils/regexValidation';
 import { createLogger } from '@shared/utils/logger';
 import * as fs from 'fs';
@@ -23,8 +23,8 @@ import type { SshConnectionProfile } from '@shared/types/api';
 
 const logger = createLogger('Service:ConfigManager');
 
-const CONFIG_DIR = path.join(os.homedir(), '.claude');
-const CONFIG_FILENAME = 'claude-devtools-config.json';
+const CONFIG_DIR = path.join(os.homedir(), '.factory');
+const CONFIG_FILENAME = 'droid-devtools-config.json';
 const DEFAULT_CONFIG_PATH = path.join(CONFIG_DIR, CONFIG_FILENAME);
 
 // ===========================================================================
@@ -180,7 +180,7 @@ export interface GeneralConfig {
   showDockIcon: boolean;
   theme: 'dark' | 'light' | 'system';
   defaultTab: 'dashboard' | 'last-session';
-  claudeRootPath: string | null;
+  factoryRootPath: string | null;
   autoExpandAIGroups: boolean;
   useNativeTitleBar: boolean;
 }
@@ -249,7 +249,7 @@ const DEFAULT_CONFIG: AppConfig = {
     showDockIcon: true,
     theme: 'system',
     defaultTab: 'dashboard',
-    claudeRootPath: null,
+    factoryRootPath: null,
     autoExpandAIGroups: false,
     useNativeTitleBar: false,
   },
@@ -274,7 +274,7 @@ const DEFAULT_CONFIG: AppConfig = {
   },
 };
 
-function normalizeConfiguredClaudeRootPath(value: unknown): string | null {
+function normalizeConfiguredFactoryRootPath(value: unknown): string | null {
   if (typeof value !== 'string') {
     return null;
   }
@@ -330,7 +330,7 @@ export class ConfigManager {
    */
   async initialize(): Promise<void> {
     this.config = await this.loadConfig();
-    setClaudeBasePathOverride(this.config.general.claudeRootPath);
+    setFactoryBasePathOverride(this.config.general.factoryRootPath);
     this.triggerManager = new TriggerManager(this.config.notifications.triggers, () =>
       this.saveConfig()
     );
@@ -433,7 +433,7 @@ export class ConfigManager {
       ...DEFAULT_CONFIG.general,
       ...(loaded.general ?? {}),
     };
-    mergedGeneral.claudeRootPath = normalizeConfiguredClaudeRootPath(mergedGeneral.claudeRootPath);
+    mergedGeneral.factoryRootPath = normalizeConfiguredFactoryRootPath(mergedGeneral.factoryRootPath);
 
     // Merge triggers: preserve existing triggers, add missing builtin ones
     const mergedTriggers = TriggerManager.mergeTriggers(loadedTriggers, DEFAULT_TRIGGERS);
@@ -506,7 +506,7 @@ export class ConfigManager {
     };
 
     if (section === 'general') {
-      setClaudeBasePathOverride(this.config.general.claudeRootPath);
+      setFactoryBasePathOverride(this.config.general.factoryRootPath);
     }
 
     this.saveConfig();
@@ -521,14 +521,14 @@ export class ConfigManager {
       return data;
     }
 
-    if (!Object.prototype.hasOwnProperty.call(data, 'claudeRootPath')) {
+    if (!Object.prototype.hasOwnProperty.call(data, 'factoryRootPath')) {
       return data;
     }
 
     const generalUpdate = data as Partial<GeneralConfig>;
     return {
       ...generalUpdate,
-      claudeRootPath: normalizeConfiguredClaudeRootPath(generalUpdate.claudeRootPath),
+      factoryRootPath: normalizeConfiguredFactoryRootPath(generalUpdate.factoryRootPath),
     } as unknown as Partial<AppConfig[K]>;
   }
 
@@ -942,7 +942,7 @@ export class ConfigManager {
    */
   resetToDefaults(): AppConfig {
     this.config = this.deepClone(DEFAULT_CONFIG);
-    setClaudeBasePathOverride(this.config.general.claudeRootPath);
+    setFactoryBasePathOverride(this.config.general.factoryRootPath);
     this.triggerManager.setTriggers(this.config.notifications.triggers);
     this.saveConfig();
     logger.info('Config reset to defaults');
@@ -956,7 +956,7 @@ export class ConfigManager {
    */
   async reload(): Promise<AppConfig> {
     this.config = await this.loadConfig();
-    setClaudeBasePathOverride(this.config.general.claudeRootPath);
+    setFactoryBasePathOverride(this.config.general.factoryRootPath);
     this.triggerManager.setTriggers(this.config.notifications.triggers);
     logger.info('Config reloaded from disk');
     return this.getConfig();

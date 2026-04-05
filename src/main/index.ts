@@ -184,10 +184,10 @@ function onContextSwitched(context: ServiceContext): void {
 }
 
 /**
- * Rebuilds the local ServiceContext using the current configured Claude root paths.
- * Called when general.claudeRootPath changes.
+ * Rebuilds the local ServiceContext using the current configured Factory root paths.
+ * Called when general.factoryRootPath changes.
  */
-function reconfigureLocalContextForClaudeRoot(): void {
+function reconfigureLocalContextForFactoryRoot(): void {
   try {
     const currentLocal = contextRegistry.get('local');
     if (!currentLocal) {
@@ -279,8 +279,8 @@ function initializeServices(): void {
   initializeIpcHandlers(contextRegistry, updaterService, sshConnectionManager, {
     rewire: rewireContextEvents,
     full: onContextSwitched,
-    onClaudeRootPathUpdated: (_claudeRootPath: string | null) => {
-      reconfigureLocalContextForClaudeRoot();
+    onFactoryRootPathUpdated: (_factoryRootPath: string | null) => {
+      reconfigureLocalContextForFactoryRoot();
     },
   });
 

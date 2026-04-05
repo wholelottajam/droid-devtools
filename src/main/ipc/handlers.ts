@@ -68,7 +68,7 @@ export function initializeIpcHandlers(
   contextCallbacks: {
     rewire: (context: ServiceContext) => void;
     full: (context: ServiceContext) => void;
-    onClaudeRootPathUpdated: (claudeRootPath: string | null) => Promise<void> | void;
+    onFactoryRootPathUpdated: (factoryRootPath: string | null) => Promise<void> | void;
   }
 ): void {
   // Initialize domain handlers with registry
@@ -80,7 +80,7 @@ export function initializeIpcHandlers(
   initializeSshHandlers(sshManager, registry, contextCallbacks.rewire);
   initializeContextHandlers(registry, contextCallbacks.rewire);
   initializeConfigHandlers({
-    onClaudeRootPathUpdated: contextCallbacks.onClaudeRootPathUpdated,
+    onFactoryRootPathUpdated: contextCallbacks.onFactoryRootPathUpdated,
   });
 
   // Register all handlers

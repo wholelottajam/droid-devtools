@@ -11,7 +11,7 @@ import type {
   ToolUseResultData,
 } from './data';
 export type { SemanticStep };
-import type { ClaudeMdStats } from './claudeMd';
+import type { AgentsMdStats } from './agentsMd';
 import type { CompactionTokenDelta } from './contextInjection';
 import type { ModelInfo } from '@shared/utils/modelParser';
 
@@ -307,7 +307,7 @@ export interface EnhancedAIGroup extends AIGroup {
   /** Unique models used by subagents (if different from main) */
   subagentModels: ModelInfo[];
   /** CLAUDE.md injection statistics for this group */
-  claudeMdStats: ClaudeMdStats | null;
+  claudeMdStats: AgentsMdStats | null;
 }
 
 /**

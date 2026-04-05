@@ -22,7 +22,7 @@ import { ChevronRight } from 'lucide-react';
 import { CopyablePath } from '../common/CopyablePath';
 
 import type {
-  ClaudeMdContextInjection,
+  AgentsMdContextInjection,
   ContextInjection,
   ContextStats,
   MentionedFileInjection,
@@ -38,9 +38,9 @@ interface ContextBadgeProps {
 }
 
 /**
- * Type guard for ClaudeMdContextInjection.
+ * Type guard for AgentsMdContextInjection.
  */
-function isClaudeMdInjection(inj: ContextInjection): inj is ClaudeMdContextInjection {
+function isAgentsMdInjection(inj: ContextInjection): inj is AgentsMdContextInjection {
   return inj.category === 'claude-md';
 }
 
@@ -153,8 +153,8 @@ export const ContextBadge = ({
   );
 
   // Filter new injections by category
-  const newClaudeMdInjections = useMemo(
-    () => stats.newInjections.filter(isClaudeMdInjection),
+  const newAgentsMdInjections = useMemo(
+    () => stats.newInjections.filter(isAgentsMdInjection),
     [stats.newInjections]
   );
 
@@ -191,8 +191,8 @@ export const ContextBadge = ({
 
   // Calculate token totals per section
   const claudeMdTokens = useMemo(
-    () => newClaudeMdInjections.reduce((sum, inj) => sum + inj.estimatedTokens, 0),
-    [newClaudeMdInjections]
+    () => newAgentsMdInjections.reduce((sum, inj) => sum + inj.estimatedTokens, 0),
+    [newAgentsMdInjections]
   );
 
   const mentionedFileTokens = useMemo(
@@ -431,13 +431,13 @@ export const ContextBadge = ({
               )}
 
               {/* CLAUDE.md Files section */}
-              {newClaudeMdInjections.length > 0 && (
+              {newAgentsMdInjections.length > 0 && (
                 <PopoverSection
                   title="CLAUDE.md Files"
-                  count={newClaudeMdInjections.length}
+                  count={newAgentsMdInjections.length}
                   tokenCount={claudeMdTokens}
                 >
-                  {newClaudeMdInjections.map((injection) => {
+                  {newAgentsMdInjections.map((injection) => {
                     const displayPath =
                       shortenDisplayPath(injection.path, projectRoot) || injection.displayName;
                     const absolutePath = resolveAbsolutePath(injection.path, projectRoot);

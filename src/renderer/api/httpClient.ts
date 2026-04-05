@@ -7,14 +7,14 @@
  */
 
 import type {
+  AgentsMdFileInfo,
   AppConfig,
-  ClaudeMdFileInfo,
-  ClaudeRootFolderSelection,
-  ClaudeRootInfo,
   ConfigAPI,
   ContextInfo,
   ConversationGroup,
   ElectronAPI,
+  FactoryRootFolderSelection,
+  FactoryRootInfo,
   FileChangeEvent,
   FindSessionByIdResult,
   FindSessionsByPartialIdResult,
@@ -41,7 +41,7 @@ import type {
   TriggerTestResult,
   UpdaterAPI,
   WaterfallData,
-  WslClaudeRootCandidate,
+  WslFactoryRootCandidate,
 } from '@shared/types';
 import type { AgentConfig } from '@shared/types/api';
 
@@ -303,18 +303,18 @@ export class HttpAPIClient implements ElectronAPI {
   // CLAUDE.md reading
   // ---------------------------------------------------------------------------
 
-  readClaudeMdFiles = (projectRoot: string): Promise<Record<string, ClaudeMdFileInfo>> =>
-    this.post<Record<string, ClaudeMdFileInfo>>('/api/read-claude-md', { projectRoot });
+  readAgentsMdFiles = (projectRoot: string): Promise<Record<string, AgentsMdFileInfo>> =>
+    this.post<Record<string, AgentsMdFileInfo>>('/api/read-agents-md', { projectRoot });
 
-  readDirectoryClaudeMd = (dirPath: string): Promise<ClaudeMdFileInfo> =>
-    this.post<ClaudeMdFileInfo>('/api/read-directory-claude-md', { dirPath });
+  readDirectoryAgentsMd = (dirPath: string): Promise<AgentsMdFileInfo> =>
+    this.post<AgentsMdFileInfo>('/api/read-directory-agents-md', { dirPath });
 
   readMentionedFile = (
     absolutePath: string,
     projectRoot: string,
     maxTokens?: number
-  ): Promise<ClaudeMdFileInfo | null> =>
-    this.post<ClaudeMdFileInfo | null>('/api/read-mentioned-file', {
+  ): Promise<AgentsMdFileInfo | null> =>
+    this.post<AgentsMdFileInfo | null>('/api/read-mentioned-file', {
       absolutePath,
       projectRoot,
       maxTokens,
@@ -436,21 +436,21 @@ export class HttpAPIClient implements ElectronAPI {
       console.warn('[HttpAPIClient] selectFolders is not available in browser mode');
       return [];
     },
-    selectClaudeRootFolder: async (): Promise<ClaudeRootFolderSelection | null> => {
-      console.warn('[HttpAPIClient] selectClaudeRootFolder is not available in browser mode');
+    selectFactoryRootFolder: async (): Promise<FactoryRootFolderSelection | null> => {
+      console.warn('[HttpAPIClient] selectFactoryRootFolder is not available in browser mode');
       return null;
     },
-    getClaudeRootInfo: async (): Promise<ClaudeRootInfo> => {
+    getFactoryRootInfo: async (): Promise<FactoryRootInfo> => {
       const config = await this.config.get();
-      const fallbackPath = config.general.claudeRootPath ?? '~/.claude';
+      const fallbackPath = config.general.factoryRootPath ?? '~/.factory';
       return {
         defaultPath: fallbackPath,
         resolvedPath: fallbackPath,
-        customPath: config.general.claudeRootPath,
+        customPath: config.general.factoryRootPath,
       };
     },
-    findWslClaudeRoots: async (): Promise<WslClaudeRootCandidate[]> => {
-      console.warn('[HttpAPIClient] findWslClaudeRoots is not available in browser mode');
+    findWslFactoryRoots: async (): Promise<WslFactoryRootCandidate[]> => {
+      console.warn('[HttpAPIClient] findWslFactoryRoots is not available in browser mode');
       return [];
     },
     openInEditor: async (): Promise<void> => {

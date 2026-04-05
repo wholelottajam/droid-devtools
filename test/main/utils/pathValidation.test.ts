@@ -7,7 +7,7 @@ import * as os from 'os';
 import * as path from 'path';
 import { afterEach, beforeEach, describe, expect, it } from 'vitest';
 
-import { setClaudeBasePathOverride } from '../../../src/main/utils/pathDecoder';
+import { setFactoryBasePathOverride } from '../../../src/main/utils/pathDecoder';
 
 import {
   isPathWithinAllowedDirectories,
@@ -17,21 +17,21 @@ import {
 
 describe('pathValidation', () => {
   const homeDir = os.homedir();
-  const claudeDir = path.join(homeDir, '.claude');
+  const factoryDir = path.join(homeDir, '.factory');
   const testProjectPath = path.resolve('/home/user/my-project');
 
   beforeEach(() => {
-    setClaudeBasePathOverride(claudeDir);
+    setFactoryBasePathOverride(factoryDir);
   });
 
   afterEach(() => {
-    setClaudeBasePathOverride(null);
+    setFactoryBasePathOverride(null);
   });
 
   describe('isPathWithinAllowedDirectories', () => {
-    it('should allow paths within ~/.claude', () => {
+    it('should allow paths within ~/.factory', () => {
       expect(
-        isPathWithinAllowedDirectories(path.join(claudeDir, 'projects', 'test.jsonl'), null)
+        isPathWithinAllowedDirectories(path.join(factoryDir, 'sessions', 'test.jsonl'), null)
       ).toBe(true);
     });
 
@@ -52,8 +52,8 @@ describe('pathValidation', () => {
       expect(isPathWithinAllowedDirectories(homeDir, null)).toBe(false);
     });
 
-    it('should allow exact ~/.claude path', () => {
-      expect(isPathWithinAllowedDirectories(claudeDir, null)).toBe(true);
+    it('should allow exact ~/.factory path', () => {
+      expect(isPathWithinAllowedDirectories(factoryDir, null)).toBe(true);
     });
 
     it('should allow exact project path', () => {
@@ -209,9 +209,9 @@ describe('pathValidation', () => {
         expect(result.valid).toBe(true);
       });
 
-      it('should allow JSONL files in ~/.claude', () => {
+      it('should allow JSONL files in ~/.factory', () => {
         const result = validateFilePath(
-          path.join(claudeDir, 'projects', '-home-user-project', 'session.jsonl'),
+          path.join(factoryDir, 'sessions', '-home-user-project', 'session.jsonl'),
           null
         );
         expect(result.valid).toBe(true);
@@ -219,10 +219,10 @@ describe('pathValidation', () => {
     });
 
     describe('tilde expansion', () => {
-      it('should expand ~ to home directory for paths within ~/.claude', () => {
-        const result = validateFilePath('~/.claude/projects/test.jsonl', null);
+      it('should expand ~ to home directory for paths within ~/.factory', () => {
+        const result = validateFilePath('~/.factory/sessions/test.jsonl', null);
         expect(result.valid).toBe(true);
-        expect(result.normalizedPath).toBe(path.join(homeDir, '.claude', 'projects', 'test.jsonl'));
+        expect(result.normalizedPath).toBe(path.join(homeDir, '.factory', 'sessions', 'test.jsonl'));
       });
 
       it('should expand ~ to home directory for project paths', () => {
@@ -247,9 +247,9 @@ describe('pathValidation', () => {
 
   describe('validateOpenPath', () => {
     it('should expand tilde in paths', () => {
-      const result = validateOpenPath('~/.claude', null);
+      const result = validateOpenPath('~/.factory', null);
       expect(result.valid).toBe(true);
-      expect(result.normalizedPath).toBe(path.normalize(claudeDir));
+      expect(result.normalizedPath).toBe(path.normalize(factoryDir));
     });
 
     it('should reject sensitive files', () => {
@@ -269,8 +269,8 @@ describe('pathValidation', () => {
       expect(result.valid).toBe(true);
     });
 
-    it('should allow ~/.claude directory', () => {
-      const result = validateOpenPath(claudeDir, null);
+    it('should allow ~/.factory directory', () => {
+      const result = validateOpenPath(factoryDir, null);
       expect(result.valid).toBe(true);
     });
 

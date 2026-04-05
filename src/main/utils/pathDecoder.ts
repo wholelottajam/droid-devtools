@@ -233,9 +233,10 @@ export function buildSubagentsPath(basePath: string, projectId: string, sessionI
 
 /**
  * Construct the path to a task list file (stored in todos directory).
+ * @deprecated Droid has no separate todos dir; this is a no-op kept for compatibility.
  */
-export function buildTodoPath(claudeBasePath: string, sessionId: string): string {
-  return path.join(claudeBasePath, 'todos', `${sessionId}.json`);
+export function buildTodoPath(factoryBasePath: string, sessionId: string): string {
+  return path.join(factoryBasePath, 'todos', `${sessionId}.json`);
 }
 
 // =============================================================================
@@ -253,21 +254,21 @@ function getHomeDir(): string {
   return process.env.HOME || process.env.USERPROFILE || windowsHome || os.homedir() || '/';
 }
 
-let claudeBasePathOverride: string | null = null;
+let factoryBasePathOverride: string | null = null;
 
-function getDefaultClaudeBasePath(): string {
-  return path.join(getHomeDir(), '.claude');
+function getDefaultFactoryBasePath(): string {
+  return path.join(getHomeDir(), '.factory');
 }
 
 /**
- * Get the auto-detected Claude config base path (~/.claude) without considering overrides.
+ * Get the auto-detected Factory config base path (~/.factory) without considering overrides.
  */
-export function getAutoDetectedClaudeBasePath(): string {
-  return getDefaultClaudeBasePath();
+export function getAutoDetectedFactoryBasePath(): string {
+  return getDefaultFactoryBasePath();
 }
 
-function normalizeOverridePath(claudeBasePath: string): string | null {
-  const trimmed = claudeBasePath.trim();
+function normalizeOverridePath(factoryBasePath: string): string | null {
+  const trimmed = factoryBasePath.trim();
   if (!trimmed) {
     return null;
   }
@@ -295,35 +296,35 @@ function normalizeOverridePath(claudeBasePath: string): string | null {
 }
 
 /**
- * Override the Claude config base path (~/.claude).
+ * Override the Factory config base path (~/.factory).
  * Pass null to return to auto-detection.
  */
-export function setClaudeBasePathOverride(claudeBasePath: string | null | undefined): void {
-  if (claudeBasePath == null) {
-    claudeBasePathOverride = null;
+export function setFactoryBasePathOverride(factoryBasePath: string | null | undefined): void {
+  if (factoryBasePath == null) {
+    factoryBasePathOverride = null;
     return;
   }
 
-  claudeBasePathOverride = normalizeOverridePath(claudeBasePath);
+  factoryBasePathOverride = normalizeOverridePath(factoryBasePath);
 }
 
 /**
- * Get the Claude config base path (~/.claude).
+ * Get the Factory config base path (~/.factory).
  */
-export function getClaudeBasePath(): string {
-  return claudeBasePathOverride ?? getDefaultClaudeBasePath();
+export function getFactoryBasePath(): string {
+  return factoryBasePathOverride ?? getDefaultFactoryBasePath();
 }
 
 /**
- * Get the projects directory path (~/.claude/projects).
+ * Get the sessions directory path (~/.factory/sessions).
  */
 export function getProjectsBasePath(): string {
-  return path.join(getClaudeBasePath(), 'projects');
+  return path.join(getFactoryBasePath(), 'sessions');
 }
 
 /**
- * Get the todos directory path (~/.claude/todos).
+ * Get the todos directory path (no-op for Droid — kept for interface compatibility).
  */
 export function getTodosBasePath(): string {
-  return path.join(getClaudeBasePath(), 'todos');
+  return path.join(getFactoryBasePath(), 'todos');
 }

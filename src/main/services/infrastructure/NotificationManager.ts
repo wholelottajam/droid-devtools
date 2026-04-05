@@ -77,7 +77,7 @@ const MAX_NOTIFICATIONS = 100;
 const THROTTLE_MS = 5000;
 
 /** Path to notifications storage file */
-const NOTIFICATIONS_PATH = path.join(os.homedir(), '.claude', 'claude-devtools-notifications.json');
+const NOTIFICATIONS_PATH = path.join(os.homedir(), '.factory', 'droid-devtools-notifications.json');
 
 // =============================================================================
 // NotificationManager Class
@@ -386,7 +386,7 @@ export class NotificationManager extends EventEmitter {
     const config = this.configManager.getConfig();
 
     const notification = new Notification({
-      title: 'Claude Code Error',
+      title: 'Droid Error',
       subtitle: error.context.projectName,
       body: error.message.slice(0, 200),
       sound: config.notifications.soundEnabled ? 'default' : undefined,

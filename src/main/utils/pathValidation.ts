@@ -9,7 +9,7 @@ import * as fs from 'fs';
 import * as os from 'os';
 import * as path from 'path';
 
-import { getClaudeBasePath } from './pathDecoder';
+import { getFactoryBasePath } from './pathDecoder';
 
 /**
  * Sensitive file patterns that should never be accessible.
@@ -106,11 +106,11 @@ export function isPathWithinAllowedDirectories(
 ): boolean {
   const isWindows = process.platform === 'win32';
   const normalizedTarget = normalizeForCompare(normalizedPath, isWindows);
-  const claudeDir = getClaudeBasePath();
-  const normalizedClaudeDir = normalizeForCompare(claudeDir, isWindows);
+  const factoryDir = getFactoryBasePath();
+  const normalizedFactoryDir = normalizeForCompare(factoryDir, isWindows);
 
-  // Always allow access to ~/.claude for session data
-  if (isPathWithinRoot(normalizedTarget, normalizedClaudeDir)) {
+  // Always allow access to ~/.factory for session data
+  if (isPathWithinRoot(normalizedTarget, normalizedFactoryDir)) {
     return true;
   }
 

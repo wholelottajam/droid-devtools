@@ -1,5 +1,5 @@
 /**
- * ClaudeMdSection - CLAUDE.md files section with nested Global/Project/Directory groups.
+ * AgentsMdSection - AGENTS.md files section with nested Global/Project/Directory groups.
  */
 
 import React, { useState } from 'react';
@@ -8,26 +8,26 @@ import { ChevronRight } from 'lucide-react';
 
 import { buildDirectoryTree } from '../DirectoryTree/buildDirectoryTree';
 import { DirectoryTreeNode } from '../DirectoryTree/DirectoryTreeNode';
-import { ClaudeMdItem } from '../items/ClaudeMdItem';
+import { AgentsMdItem } from '../items/AgentsMdItem';
 import { formatTokens } from '../utils/formatting';
 
-import type { ClaudeMdContextInjection } from '@renderer/types/contextInjection';
+import type { AgentsMdContextInjection } from '@renderer/types/contextInjection';
 
-interface ClaudeMdSubSectionProps {
+interface AgentsMdSubSectionProps {
   label: string;
-  injections: ClaudeMdContextInjection[];
+  injections: AgentsMdContextInjection[];
   isDirectory: boolean;
   projectRoot: string;
   onNavigateToTurn?: (turnIndex: number) => void;
 }
 
-export const ClaudeMdSubSection = ({
+export const AgentsMdSubSection = ({
   label,
   injections,
   isDirectory,
   projectRoot,
   onNavigateToTurn,
-}: Readonly<ClaudeMdSubSectionProps>): React.ReactElement => {
+}: Readonly<AgentsMdSubSectionProps>): React.ReactElement => {
   const [expanded, setExpanded] = useState(true);
   const sectionTokens = injections.reduce((sum, inj) => sum + inj.estimatedTokens, 0);
 
@@ -71,7 +71,7 @@ export const ClaudeMdSubSection = ({
             />
           ) : (
             injections.map((injection) => (
-              <ClaudeMdItem
+              <AgentsMdItem
                 key={injection.id}
                 injection={injection}
                 projectRoot={projectRoot}

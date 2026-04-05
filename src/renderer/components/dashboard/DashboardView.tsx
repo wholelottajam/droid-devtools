@@ -76,7 +76,11 @@ const CommandSearch = ({ value, onChange }: Readonly<CommandSearchProps>): React
         <button
           onClick={() => openCommandPalette()}
           className="flex shrink-0 items-center gap-1 transition-opacity hover:opacity-80"
-          title={selectedProjectId ? `Search in sessions (${formatShortcut('K')})` : `Search projects (${formatShortcut('K')})`}
+          title={
+            selectedProjectId
+              ? `Search in sessions (${formatShortcut('K')})`
+              : `Search projects (${formatShortcut('K')})`
+          }
         >
           <kbd className="flex h-5 items-center justify-center rounded border border-border bg-surface-overlay px-1.5 text-[10px] font-medium text-text-muted">
             <Command className="size-2.5" />
@@ -429,7 +433,7 @@ export const DashboardView = (): React.JSX.Element => {
             <button
               onClick={() => openSettingsTab('general')}
               className="flex items-center gap-1.5 text-xs text-text-muted transition-colors hover:text-text-secondary"
-              title="Change Claude data folder"
+              title="Change Factory data folder"
             >
               <Settings className="size-3" />
               Change default folder

@@ -3,13 +3,13 @@
  */
 
 import type { TreeNode } from './types';
-import type { ClaudeMdContextInjection } from '@renderer/types/contextInjection';
+import type { AgentsMdContextInjection } from '@renderer/types/contextInjection';
 
 /**
  * Build a tree structure from a list of directory CLAUDE.md injections.
  */
 export function buildDirectoryTree(
-  injections: ClaudeMdContextInjection[],
+  injections: AgentsMdContextInjection[],
   projectRoot: string
 ): TreeNode {
   const root: TreeNode = { name: '', path: '', isFile: false, children: new Map() };

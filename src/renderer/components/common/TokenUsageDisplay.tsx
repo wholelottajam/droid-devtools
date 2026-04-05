@@ -18,7 +18,7 @@ import {
 } from '@shared/utils/tokenFormatting';
 import { ChevronRight, Info } from 'lucide-react';
 
-import type { ClaudeMdStats } from '@renderer/types/claudeMd';
+import type { AgentsMdStats } from '@renderer/types/agentsMd';
 import type { ContextStats } from '@renderer/types/contextInjection';
 import type { ModelInfo } from '@shared/utils/modelParser';
 
@@ -42,7 +42,7 @@ interface TokenUsageDisplayProps {
   /** Size variant - 'sm' for compact, 'md' for slightly larger */
   size?: 'sm' | 'md';
   /** Optional CLAUDE.md injection statistics (deprecated, use contextStats) */
-  claudeMdStats?: ClaudeMdStats;
+  claudeMdStats?: AgentsMdStats;
   /** Optional unified context statistics */
   contextStats?: ContextStats;
   /** Phase number for this AI group */

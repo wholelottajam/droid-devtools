@@ -13,6 +13,7 @@ import {
   getTodosBasePath,
   isValidEncodedPath,
 } from '../../../src/main/utils/pathDecoder';
+// Note: getProjectsBasePath now returns ~/.factory/sessions, getTodosBasePath returns ~/.factory/todos
 
 describe('pathDecoder', () => {
   describe('encodePath', () => {
@@ -187,8 +188,8 @@ describe('pathDecoder', () => {
     });
 
     it('should handle paths with special characters', () => {
-      expect(buildSessionPath('/home/user/.claude/projects', '-Users-name', 'abc123')).toBe(
-        path.join('/home/user/.claude/projects', '-Users-name', 'abc123.jsonl')
+      expect(buildSessionPath('/home/user/.factory/sessions', '-Users-name', 'abc123')).toBe(
+        path.join('/home/user/.factory/sessions', '-Users-name', 'abc123.jsonl')
       );
     });
   });
@@ -203,21 +204,21 @@ describe('pathDecoder', () => {
 
   describe('buildTodoPath', () => {
     it('should construct correct todo path', () => {
-      expect(buildTodoPath('/home/user/.claude', 'session-123')).toBe(
-        path.join('/home/user/.claude', 'todos', 'session-123.json')
+      expect(buildTodoPath('/home/user/.factory', 'session-123')).toBe(
+        path.join('/home/user/.factory', 'todos', 'session-123.json')
       );
     });
   });
 
   describe('getProjectsBasePath', () => {
-    it('should return projects base path', () => {
-      expect(getProjectsBasePath()).toBe(path.join('/home/testuser', '.claude', 'projects'));
+    it('should return sessions base path under .factory', () => {
+      expect(getProjectsBasePath()).toBe(path.join('/home/testuser', '.factory', 'sessions'));
     });
   });
 
   describe('getTodosBasePath', () => {
-    it('should return todos base path', () => {
-      expect(getTodosBasePath()).toBe(path.join('/home/testuser', '.claude', 'todos'));
+    it('should return todos base path under .factory', () => {
+      expect(getTodosBasePath()).toBe(path.join('/home/testuser', '.factory', 'todos'));
     });
   });
 });

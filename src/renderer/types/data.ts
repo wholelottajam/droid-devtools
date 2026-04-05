@@ -54,7 +54,7 @@ export type { ToolUseResultData } from '@shared/types';
 // =============================================================================
 
 // API types
-export type { ClaudeMdFileInfo } from './api';
+export type { AgentsMdFileInfo } from './api';
 
 // Notification types
 export type {

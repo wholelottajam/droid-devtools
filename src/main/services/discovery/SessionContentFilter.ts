@@ -22,7 +22,7 @@
  */
 
 import { LocalFileSystemProvider } from '@main/services/infrastructure/LocalFileSystemProvider';
-import { type ChatHistoryEntry, type ContentBlock } from '@main/types';
+import { type ChatHistoryEntry, type ContentBlock, isDroidMessageEntry } from '@main/types';
 import { createLogger } from '@shared/utils/logger';
 import * as readline from 'readline';
 
@@ -79,8 +79,10 @@ export class SessionContentFilter {
         try {
           const entry = JSON.parse(line) as ChatHistoryEntry;
 
-          // Skip entries without uuid (queue-operation, etc.)
-          if (!entry.uuid) {
+          // Skip entries without an identifier (uuid for Claude, id for Droid)
+          const hasId =
+            ('uuid' in entry && entry.uuid) || ('id' in entry && (entry as { id?: string }).id);
+          if (!hasId) {
             continue;
           }
 
@@ -112,6 +114,25 @@ export class SessionContentFilter {
    */
   static isDisplayableEntry(entry: ChatHistoryEntry): boolean {
     const entryType = entry.type;
+
+    // Droid wrapped message format — delegate based on inner role
+    if (isDroidMessageEntry(entry)) {
+      const role = entry.message.role;
+      if (role === 'assistant') {
+        return true;
+      }
+      if (role === 'user') {
+        // Synthesize a user-like entry for the existing check
+        const content = entry.message.content;
+        if (typeof content === 'string') {
+          return SessionContentFilter.isDisplayableStringContent(content);
+        }
+        if (Array.isArray(content)) {
+          return SessionContentFilter.isDisplayableArrayContent(content);
+        }
+      }
+      return false;
+    }
 
     // Hard noise types - never displayed
     if (HARD_NOISE_TYPES.includes(entryType)) {

@@ -4,7 +4,7 @@
  * This provides a comprehensive view of all context sources injected into the conversation.
  */
 
-import type { ClaudeMdInjection } from './claudeMd';
+import type { AgentsMdInjection } from './agentsMd';
 
 // =============================================================================
 // Constants
@@ -197,9 +197,9 @@ export interface TaskCoordinationInjection {
 // =============================================================================
 
 /**
- * Extended ClaudeMdInjection with category discriminator for union compatibility.
+ * Extended AgentsMdInjection with category discriminator for union compatibility.
  */
-export type ClaudeMdContextInjection = ClaudeMdInjection & { category: 'claude-md' };
+export type AgentsMdContextInjection = AgentsMdInjection & { category: 'claude-md' };
 
 /**
  * Discriminated union of all context injection types.
@@ -212,7 +212,7 @@ export type ClaudeMdContextInjection = ClaudeMdInjection & { category: 'claude-m
  * - 'user-message': User message prompt injections
  */
 export type ContextInjection =
-  | ClaudeMdContextInjection
+  | AgentsMdContextInjection
   | MentionedFileInjection
   | ToolOutputInjection
   | ThinkingTextInjection
@@ -227,7 +227,7 @@ export type ContextInjection =
  * Token counts broken down by context source category.
  */
 export interface TokensByCategory {
-  /** Tokens from CLAUDE.md injections */
+  /** Tokens from AGENTS.md injections */
   claudeMd: number;
   /** Tokens from mentioned files */
   mentionedFiles: number;

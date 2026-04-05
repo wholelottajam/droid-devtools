@@ -410,7 +410,7 @@ const AIChatGroupInner = ({
               className="shrink-0 text-xs font-semibold"
               style={{ color: COLOR_TEXT_SECONDARY }}
             >
-              Claude
+              Droid
             </span>
 
             {/* Main agent model */}

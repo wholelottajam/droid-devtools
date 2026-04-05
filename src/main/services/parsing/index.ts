@@ -9,7 +9,8 @@
  */
 
 export * from './AgentConfigReader';
-export * from './ClaudeMdReader';
+export * from './AgentsMdReader';
 export * from './GitIdentityResolver';
 export * from './MessageClassifier';
 export * from './SessionParser';
+export * from './SessionSettingsReader';

@@ -1,5 +1,5 @@
 /**
- * ClaudeMdItem - Single CLAUDE.md file item display.
+ * AgentsMdItem - Single AGENTS.md file item display.
  */
 
 import React from 'react';
@@ -10,19 +10,19 @@ import { resolveAbsolutePath, shortenDisplayPath } from '@renderer/utils/pathDis
 import { formatTokens } from '../utils/formatting';
 import { formatFirstSeen, parseTurnIndex } from '../utils/pathParsing';
 
-import type { ClaudeMdContextInjection } from '@renderer/types/contextInjection';
+import type { AgentsMdContextInjection } from '@renderer/types/contextInjection';
 
-interface ClaudeMdItemProps {
-  injection: ClaudeMdContextInjection;
+interface AgentsMdItemProps {
+  injection: AgentsMdContextInjection;
   projectRoot?: string;
   onNavigateToTurn?: (turnIndex: number) => void;
 }
 
-export const ClaudeMdItem = ({
+export const AgentsMdItem = ({
   injection,
   projectRoot,
   onNavigateToTurn,
-}: Readonly<ClaudeMdItemProps>): React.ReactElement => {
+}: Readonly<AgentsMdItemProps>): React.ReactElement => {
   const turnIndex = parseTurnIndex(injection.firstSeenInGroup);
   const isClickable = onNavigateToTurn && turnIndex >= 0;
   const displayPath = shortenDisplayPath(injection.path, projectRoot);

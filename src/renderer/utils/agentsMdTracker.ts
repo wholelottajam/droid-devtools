@@ -1,30 +1,30 @@
 /**
- * CLAUDE.md Injection Tracker
+ * AGENTS.md Injection Tracker
  *
- * Tracks system context injections from various CLAUDE.md sources throughout a session.
+ * Tracks system context injections from various AGENTS.md sources throughout a session.
  * Detects injections based on:
  * - Global sources (enterprise, user-memory, project-memory, project-rules, project-local)
- * - Directory-specific CLAUDE.md files (detected from Read tool calls and @ mentions)
+ * - Directory-specific AGENTS.md files (detected from Read tool calls and @ mentions)
  */
 
 import { extractFileReferences } from './groupTransformer';
 
-import type { ClaudeMdInjection, ClaudeMdSource, ClaudeMdStats } from '../types/claudeMd';
-import type { ClaudeMdFileInfo, ParsedMessage, SemanticStep } from '../types/data';
+import type { AgentsMdInjection, AgentsMdSource, AgentsMdStats } from '../types/agentsMd';
+import type { AgentsMdFileInfo, ParsedMessage, SemanticStep } from '../types/data';
 import type { AIGroup, ChatItem, FileReference, UserGroup } from '../types/groups';
 
 // =============================================================================
 // Constants
 // =============================================================================
 
-/** Default estimated tokens for global CLAUDE.md sources */
+/** Default estimated tokens for global AGENTS.md sources */
 const DEFAULT_ESTIMATED_TOKENS = 500;
 
-/** CLAUDE.md filename to search for */
-const CLAUDE_MD_FILENAME = 'CLAUDE.md';
+/** AGENTS.md filename to search for */
+const AGENTS_MD_FILENAME = 'AGENTS.md';
 
-/** Source identifier for project memory CLAUDE.md files */
-const SOURCE_PROJECT_MEMORY: ClaudeMdSource = 'project-memory';
+/** Source identifier for project memory AGENTS.md files */
+const SOURCE_PROJECT_MEMORY: AgentsMdSource = 'project-memory';
 
 // =============================================================================
 // Helper Functions
@@ -48,10 +48,10 @@ export function generateInjectionId(path: string): string {
 }
 
 /**
- * Create a display name for a CLAUDE.md injection.
+ * Create a display name for an AGENTS.md injection.
  * Returns the raw path for transparency.
  */
-export function getDisplayName(path: string, _source: ClaudeMdSource): string {
+export function getDisplayName(path: string, _source: AgentsMdSource): string {
   return path;
 }
 
@@ -272,15 +272,15 @@ export function extractFileRefsFromResponses(responses: ParsedMessage[]): FileRe
 }
 
 // =============================================================================
-// CLAUDE.md Detection Functions
+// AGENTS.md Detection Functions
 // =============================================================================
 
 /**
- * Detect potential CLAUDE.md files by walking up from a file's directory to project root.
- * Returns paths to CLAUDE.md files that would be injected based on the file path.
+ * Detect potential AGENTS.md files by walking up from a file's directory to project root.
+ * Returns paths to AGENTS.md files that would be injected based on the file path.
  */
-export function detectClaudeMdFromFilePath(filePath: string, projectRoot: string): string[] {
-  const claudeMdPaths: string[] = [];
+export function detectAgentsMdFromFilePath(filePath: string, projectRoot: string): string[] {
+  const agentsMdPaths: string[] = [];
   const sep = filePath.includes('\\') ? '\\' : '/';
 
   // Get the directory containing the file
@@ -288,9 +288,9 @@ export function detectClaudeMdFromFilePath(filePath: string, projectRoot: string
 
   // Walk up to project root (inclusive)
   while (currentDir && isAtOrAbove(projectRoot, currentDir)) {
-    // Add potential CLAUDE.md path for this directory
-    const claudeMdPath = `${currentDir}${sep}${CLAUDE_MD_FILENAME}`;
-    claudeMdPaths.push(claudeMdPath);
+    // Add potential AGENTS.md path for this directory
+    const agentsMdPath = `${currentDir}${sep}${AGENTS_MD_FILENAME}`;
+    agentsMdPaths.push(agentsMdPath);
 
     // Move to parent directory
     const parentDir = getParentDirectory(currentDir);
@@ -300,7 +300,7 @@ export function detectClaudeMdFromFilePath(filePath: string, projectRoot: string
     currentDir = parentDir;
   }
 
-  return claudeMdPaths;
+  return agentsMdPaths;
 }
 
 // =============================================================================
@@ -308,16 +308,16 @@ export function detectClaudeMdFromFilePath(filePath: string, projectRoot: string
 // =============================================================================
 
 /**
- * Create injection entries for global CLAUDE.md sources.
+ * Create injection entries for global AGENTS.md sources.
  * These are injected at the start of every session.
  * Only includes files that actually exist (tokens > 0).
  */
 export function createGlobalInjections(
   projectRoot: string,
   aiGroupId: string,
-  tokenData?: Record<string, ClaudeMdFileInfo>
-): ClaudeMdInjection[] {
-  const injections: ClaudeMdInjection[] = [];
+  tokenData?: Record<string, AgentsMdFileInfo>
+): AgentsMdInjection[] {
+  const injections: AgentsMdInjection[] = [];
 
   // Helper to get token count from tokenData or fallback to default
   const getTokens = (key: string): number => {
@@ -326,7 +326,7 @@ export function createGlobalInjections(
 
   // 1. Enterprise config
   const enterprisePath =
-    tokenData?.enterprise?.path ?? '/Library/Application Support/ClaudeCode/CLAUDE.md';
+    tokenData?.enterprise?.path ?? '/Library/Application Support/FactoryCLI/AGENTS.md';
   const enterpriseTokens = getTokens('enterprise');
   if (enterpriseTokens > 0) {
     injections.push({
@@ -340,9 +340,9 @@ export function createGlobalInjections(
     });
   }
 
-  // 2. User memory (~/.claude/CLAUDE.md)
+  // 2. User memory (~/.factory/AGENTS.md)
   // Use ~ for display purposes (renderer cannot access Node.js process.env)
-  const userMemoryPath = '~/.claude/CLAUDE.md';
+  const userMemoryPath = '~/.factory/AGENTS.md';
   const userTokens = getTokens('user');
   if (userTokens > 0) {
     injections.push({
@@ -356,10 +356,10 @@ export function createGlobalInjections(
     });
   }
 
-  // 3. Project memory - could be at root or in .claude folder
-  const projectMemoryPath = joinPaths(projectRoot, 'CLAUDE.md');
-  const projectMemoryAltPath = joinPaths(projectRoot, '.claude/CLAUDE.md');
-  // Add the main project CLAUDE.md
+  // 3. Project memory - could be at root or in .factory folder
+  const projectMemoryPath = joinPaths(projectRoot, 'AGENTS.md');
+  const projectMemoryAltPath = joinPaths(projectRoot, '.factory/AGENTS.md');
+  // Add the main project AGENTS.md
   const projectTokens = getTokens('project');
   if (projectTokens > 0) {
     injections.push({
@@ -372,7 +372,7 @@ export function createGlobalInjections(
       firstSeenInGroup: aiGroupId,
     });
   }
-  // Also add the .claude folder variant
+  // Also add the .factory folder variant
   const projectAltTokens = getTokens('project-alt');
   if (projectAltTokens > 0) {
     injections.push({
@@ -386,8 +386,8 @@ export function createGlobalInjections(
     });
   }
 
-  // 4. Project rules (*.md files in .claude/rules/)
-  const projectRulesPath = joinPaths(projectRoot, '.claude/rules/*.md');
+  // 4. Project rules (*.md files in .factory/rules/)
+  const projectRulesPath = joinPaths(projectRoot, '.factory/rules/*.md');
   const projectRulesTokens = getTokens('project-rules');
   if (projectRulesTokens > 0) {
     injections.push({
@@ -402,7 +402,7 @@ export function createGlobalInjections(
   }
 
   // 5. Project local
-  const projectLocalPath = joinPaths(projectRoot, 'CLAUDE.local.md');
+  const projectLocalPath = joinPaths(projectRoot, 'AGENTS.local.md');
   const projectLocalTokens = getTokens('project-local');
   if (projectLocalTokens > 0) {
     injections.push({
@@ -416,8 +416,8 @@ export function createGlobalInjections(
     });
   }
 
-  // 6. User rules (~/.claude/rules/**/*.md)
-  const userRulesPath = '~/.claude/rules/**/*.md';
+  // 6. User rules (~/.factory/rules/**/*.md)
+  const userRulesPath = '~/.factory/rules/**/*.md';
   const userRulesTokens = getTokens('user-rules');
   if (userRulesTokens > 0) {
     injections.push({
@@ -431,9 +431,9 @@ export function createGlobalInjections(
     });
   }
 
-  // 7. Auto memory (~/.claude/projects/<encoded>/memory/MEMORY.md)
+  // 7. Auto memory (~/.factory/sessions/<encoded>/memory/MEMORY.md)
   const autoMemoryPath =
-    tokenData?.['auto-memory']?.path ?? '~/.claude/projects/.../memory/MEMORY.md';
+    tokenData?.['auto-memory']?.path ?? '~/.factory/sessions/.../memory/MEMORY.md';
   const autoMemoryTokens = getTokens('auto-memory');
   if (autoMemoryTokens > 0) {
     injections.push({
@@ -451,9 +451,9 @@ export function createGlobalInjections(
 }
 
 /**
- * Create an injection entry for a directory-specific CLAUDE.md.
+ * Create an injection entry for a directory-specific AGENTS.md.
  */
-function createDirectoryInjection(path: string, aiGroupId: string): ClaudeMdInjection {
+function createDirectoryInjection(path: string, aiGroupId: string): AgentsMdInjection {
   return {
     id: generateInjectionId(path),
     path,
@@ -470,30 +470,30 @@ function createDirectoryInjection(path: string, aiGroupId: string): ClaudeMdInje
 // =============================================================================
 
 /**
- * Parameters for computing CLAUDE.md stats for an AI group.
+ * Parameters for computing AGENTS.md stats for an AI group.
  */
-interface ComputeClaudeMdStatsParams {
+interface ComputeAgentsMdStatsParams {
   aiGroup: AIGroup;
   userGroup: UserGroup | null;
   isFirstGroup: boolean;
-  previousInjections: ClaudeMdInjection[];
+  previousInjections: AgentsMdInjection[];
   /** Paths already seen in previous groups (threaded to avoid O(N) rebuild per group) */
   previousPaths: Set<string>;
   projectRoot: string;
   contextTokens: number;
-  tokenData?: Record<string, ClaudeMdFileInfo>;
+  tokenData?: Record<string, AgentsMdFileInfo>;
 }
 
-interface ComputeClaudeMdStatsResult {
-  stats: ClaudeMdStats;
+interface ComputeAgentsMdStatsResult {
+  stats: AgentsMdStats;
   /** Updated previousPaths set — caller should thread this to the next group */
   previousPaths: Set<string>;
 }
 
 /**
- * Compute CLAUDE.md injection statistics for an AI group.
+ * Compute AGENTS.md injection statistics for an AI group.
  */
-function computeClaudeMdStats(params: ComputeClaudeMdStatsParams): ComputeClaudeMdStatsResult {
+function computeAgentsMdStats(params: ComputeAgentsMdStatsParams): ComputeAgentsMdStatsResult {
   const {
     aiGroup,
     userGroup,
@@ -505,10 +505,10 @@ function computeClaudeMdStats(params: ComputeClaudeMdStatsParams): ComputeClaude
     tokenData,
   } = params;
 
-  const newInjections: ClaudeMdInjection[] = [];
+  const newInjections: AgentsMdInjection[] = [];
 
   // For the first group, add global injections
-  // Use "ai-N" format for firstSeenInGroup to enable turn navigation in SessionClaudeMdPanel
+  // Use "ai-N" format for firstSeenInGroup to enable turn navigation in SessionAgentsMdPanel
   const turnGroupId = `ai-${aiGroup.turnIndex}`;
   if (isFirstGroup) {
     const globalInjections = createGlobalInjections(projectRoot, turnGroupId, tokenData);
@@ -540,33 +540,33 @@ function computeClaudeMdStats(params: ComputeClaudeMdStatsParams): ComputeClaude
     }
   }
 
-  // For each file path, detect potential CLAUDE.md files
+  // For each file path, detect potential AGENTS.md files
   for (const filePath of allFilePaths) {
-    const claudeMdPaths = detectClaudeMdFromFilePath(filePath, projectRoot);
+    const agentsMdPaths = detectAgentsMdFromFilePath(filePath, projectRoot);
 
-    for (const claudeMdPath of claudeMdPaths) {
+    for (const agentsMdPath of agentsMdPaths) {
       // Skip if already seen
-      if (previousPaths.has(claudeMdPath)) {
+      if (previousPaths.has(agentsMdPath)) {
         continue;
       }
 
       // Skip if this is a global path (already handled)
       const isGlobalPath =
-        normalizeForComparison(claudeMdPath) ===
-          `${normalizeForComparison(projectRoot)}/CLAUDE.md` ||
-        normalizeForComparison(claudeMdPath) ===
-          `${normalizeForComparison(projectRoot)}/.claude/CLAUDE.md` ||
-        normalizeForComparison(claudeMdPath) ===
-          `${normalizeForComparison(projectRoot)}/CLAUDE.local.md`;
+        normalizeForComparison(agentsMdPath) ===
+          `${normalizeForComparison(projectRoot)}/AGENTS.md` ||
+        normalizeForComparison(agentsMdPath) ===
+          `${normalizeForComparison(projectRoot)}/.factory/AGENTS.md` ||
+        normalizeForComparison(agentsMdPath) ===
+          `${normalizeForComparison(projectRoot)}/AGENTS.local.md`;
 
       if (isGlobalPath) {
         continue;
       }
 
       // Create directory injection
-      const injection = createDirectoryInjection(claudeMdPath, turnGroupId);
+      const injection = createDirectoryInjection(agentsMdPath, turnGroupId);
       newInjections.push(injection);
-      previousPaths.add(claudeMdPath);
+      previousPaths.add(agentsMdPath);
     }
   }
 
@@ -603,16 +603,16 @@ function computeClaudeMdStats(params: ComputeClaudeMdStatsParams): ComputeClaude
 // =============================================================================
 
 /**
- * Process all chat items in a session and compute CLAUDE.md stats for each AI group.
- * Returns a map of aiGroupId -> ClaudeMdStats.
+ * Process all chat items in a session and compute AGENTS.md stats for each AI group.
+ * Returns a map of aiGroupId -> AgentsMdStats.
  */
-export function processSessionClaudeMd(
+export function processSessionAgentsMd(
   items: ChatItem[],
   projectRoot: string,
-  tokenData?: Record<string, ClaudeMdFileInfo>
-): Map<string, ClaudeMdStats> {
-  const statsMap = new Map<string, ClaudeMdStats>();
-  let accumulatedInjections: ClaudeMdInjection[] = [];
+  tokenData?: Record<string, AgentsMdFileInfo>
+): Map<string, AgentsMdStats> {
+  const statsMap = new Map<string, AgentsMdStats>();
+  let accumulatedInjections: AgentsMdInjection[] = [];
   let previousPaths = new Set<string>();
   let isFirstAiGroup = true;
   let previousUserGroup: UserGroup | null = null;
@@ -642,7 +642,7 @@ export function processSessionClaudeMd(
       const contextTokens = aiGroup.tokens.input || 0;
 
       // Compute stats for this group
-      const result = computeClaudeMdStats({
+      const result = computeAgentsMdStats({
         aiGroup,
         userGroup: previousUserGroup,
         isFirstGroup: isFirstAiGroup,

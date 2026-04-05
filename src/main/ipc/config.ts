@@ -17,7 +17,7 @@
  * - config:testTrigger: Test a trigger against historical session data
  */
 
-import { getAutoDetectedClaudeBasePath, getClaudeBasePath } from '@main/utils/pathDecoder';
+import { getAutoDetectedFactoryBasePath, getFactoryBasePath } from '@main/utils/pathDecoder';
 import { getErrorMessage } from '@shared/utils/errorHandling';
 import { createLogger } from '@shared/utils/logger';
 import { execFile } from 'child_process';
@@ -41,9 +41,9 @@ import { validateTriggerId } from './guards';
 
 import type { TriggerColor } from '@shared/constants/triggerColors';
 import type {
-  ClaudeRootFolderSelection,
-  ClaudeRootInfo,
-  WslClaudeRootCandidate,
+  FactoryRootFolderSelection,
+  FactoryRootInfo,
+  WslFactoryRootCandidate,
 } from '@shared/types';
 
 const logger = createLogger('IPC:config');
@@ -51,7 +51,7 @@ const execFileAsync = promisify(execFile);
 
 // Get singleton instance
 const configManager = ConfigManager.getInstance();
-let onClaudeRootPathUpdated: ((claudeRootPath: string | null) => Promise<void> | void) | null =
+let onFactoryRootPathUpdated: ((factoryRootPath: string | null) => Promise<void> | void) | null =
   null;
 
 /**
@@ -68,10 +68,10 @@ interface ConfigResult<T = void> {
  */
 export function initializeConfigHandlers(
   options: {
-    onClaudeRootPathUpdated?: (claudeRootPath: string | null) => Promise<void> | void;
+    onFactoryRootPathUpdated?: (factoryRootPath: string | null) => Promise<void> | void;
   } = {}
 ): void {
-  onClaudeRootPathUpdated = options.onClaudeRootPathUpdated ?? null;
+  onFactoryRootPathUpdated = options.onFactoryRootPathUpdated ?? null;
 }
 
 /**
@@ -115,9 +115,9 @@ export function registerConfigHandlers(ipcMain: IpcMain): void {
 
   // Dialog handlers
   ipcMain.handle('config:selectFolders', handleSelectFolders);
-  ipcMain.handle('config:selectClaudeRootFolder', handleSelectClaudeRootFolder);
-  ipcMain.handle('config:getClaudeRootInfo', handleGetClaudeRootInfo);
-  ipcMain.handle('config:findWslClaudeRoots', handleFindWslClaudeRoots);
+  ipcMain.handle('config:selectFactoryRootFolder', handleSelectFactoryRootFolder);
+  ipcMain.handle('config:getFactoryRootInfo', handleGetFactoryRootInfo);
+  ipcMain.handle('config:findWslFactoryRoots', handleFindWslFactoryRoots);
 
   // Editor handlers
   ipcMain.handle('config:openInEditor', handleOpenInEditor);
@@ -159,19 +159,19 @@ async function handleUpdateConfig(
       return { success: false, error: validation.error };
     }
 
-    const isClaudeRootUpdate =
+    const isFactoryRootUpdate =
       validation.section === 'general' &&
-      Object.prototype.hasOwnProperty.call(validation.data, 'claudeRootPath');
+      Object.prototype.hasOwnProperty.call(validation.data, 'factoryRootPath');
 
     configManager.updateConfig(validation.section, validation.data);
 
-    if (isClaudeRootUpdate && onClaudeRootPathUpdated) {
-      const nextClaudeRootPath = (validation.data as { claudeRootPath?: string | null })
-        .claudeRootPath;
+    if (isFactoryRootUpdate && onFactoryRootPathUpdated) {
+      const nextFactoryRootPath = (validation.data as { factoryRootPath?: string | null })
+        .factoryRootPath;
       try {
-        await onClaudeRootPathUpdated(nextClaudeRootPath ?? null);
+        await onFactoryRootPathUpdated(nextFactoryRootPath ?? null);
       } catch (callbackError) {
-        logger.error('Failed to apply updated Claude root path at runtime:', callbackError);
+        logger.error('Failed to apply updated Factory root path at runtime:', callbackError);
       }
     }
 
@@ -646,17 +646,17 @@ async function handleSelectFolders(_event: IpcMainInvokeEvent): Promise<ConfigRe
 }
 
 /**
- * Handler for 'config:selectClaudeRootFolder' - Opens native folder picker for Claude root.
+ * Handler for 'config:selectFactoryRootFolder' - Opens native folder picker for Factory root.
  */
-async function handleSelectClaudeRootFolder(
+async function handleSelectFactoryRootFolder(
   _event: IpcMainInvokeEvent
-): Promise<ConfigResult<ClaudeRootFolderSelection | null>> {
+): Promise<ConfigResult<FactoryRootFolderSelection | null>> {
   try {
     const focusedWindow = BrowserWindow.getFocusedWindow();
-    const currentRootPath = getClaudeBasePath();
+    const currentRootPath = getFactoryBasePath();
     const dialogOptions: Electron.OpenDialogOptions = {
       properties: ['openDirectory'],
-      title: 'Select Claude Root Folder',
+      title: 'Select Factory Root Folder',
       buttonLabel: 'Select Folder',
       defaultPath: currentRootPath,
     };
@@ -671,10 +671,10 @@ async function handleSelectClaudeRootFolder(
 
     const selectedPath = path.resolve(path.normalize(result.filePaths[0]));
     const folderName = path.basename(selectedPath);
-    const projectsDir = path.join(selectedPath, 'projects');
-    const hasProjectsDir = (() => {
+    const sessionsDir = path.join(selectedPath, 'sessions');
+    const hasSessionsDir = (() => {
       try {
-        return fs.existsSync(projectsDir) && fs.statSync(projectsDir).isDirectory();
+        return fs.existsSync(sessionsDir) && fs.statSync(sessionsDir).isDirectory();
       } catch {
         return false;
       }
@@ -684,29 +684,29 @@ async function handleSelectClaudeRootFolder(
       success: true,
       data: {
         path: selectedPath,
-        isClaudeDirName: folderName === '.claude',
-        hasProjectsDir,
+        isFactoryDirName: folderName === '.factory',
+        hasSessionsDir,
       },
     };
   } catch (error) {
-    logger.error('Error in config:selectClaudeRootFolder:', error);
+    logger.error('Error in config:selectFactoryRootFolder:', error);
     return {
       success: false,
-      error: error instanceof Error ? error.message : 'Failed to open Claude root folder dialog',
+      error: error instanceof Error ? error.message : 'Failed to open Factory root folder dialog',
     };
   }
 }
 
 /**
- * Handler for 'config:getClaudeRootInfo' - Returns default/custom/effective local Claude root paths.
+ * Handler for 'config:getFactoryRootInfo' - Returns default/custom/effective local Factory root paths.
  */
-async function handleGetClaudeRootInfo(
+async function handleGetFactoryRootInfo(
   _event: IpcMainInvokeEvent
-): Promise<ConfigResult<ClaudeRootInfo>> {
+): Promise<ConfigResult<FactoryRootInfo>> {
   try {
-    const customPath = configManager.getConfig().general.claudeRootPath;
-    const defaultPath = getAutoDetectedClaudeBasePath();
-    const resolvedPath = getClaudeBasePath();
+    const customPath = configManager.getConfig().general.factoryRootPath;
+    const defaultPath = getAutoDetectedFactoryBasePath();
+    const resolvedPath = getFactoryBasePath();
 
     return {
       success: true,
@@ -717,10 +717,10 @@ async function handleGetClaudeRootInfo(
       },
     };
   } catch (error) {
-    logger.error('Error in config:getClaudeRootInfo:', error);
+    logger.error('Error in config:getFactoryRootInfo:', error);
 
     // Last-resort fallback to a best-effort auto-detected value.
-    const fallbackDefault = getAutoDetectedClaudeBasePath();
+    const fallbackDefault = getAutoDetectedFactoryBasePath();
 
     return {
       success: true,
@@ -892,11 +892,11 @@ async function resolveWslHome(distro: string): Promise<string | null> {
 }
 
 /**
- * Handler for 'config:findWslClaudeRoots' - Find Windows UNC candidates for WSL Claude roots.
+ * Handler for 'config:findWslFactoryRoots' - Find Windows UNC candidates for WSL Factory roots.
  */
-async function handleFindWslClaudeRoots(
+async function handleFindWslFactoryRoots(
   _event: IpcMainInvokeEvent
-): Promise<ConfigResult<WslClaudeRootCandidate[]>> {
+): Promise<ConfigResult<WslFactoryRootCandidate[]>> {
   try {
     if (process.platform !== 'win32') {
       return { success: true, data: [] };
@@ -907,7 +907,7 @@ async function handleFindWslClaudeRoots(
       return { success: true, data: [] };
     }
 
-    const candidates: WslClaudeRootCandidate[] = [];
+    const candidates: WslFactoryRootCandidate[] = [];
     const seen = new Set<string>();
     for (const distro of distros) {
       const resolvedHomePath = await resolveWslHome(distro);
@@ -920,18 +920,18 @@ async function handleFindWslClaudeRoots(
         continue;
       }
 
-      const claudePosixPath = path.posix.join(normalizedHome, '.claude');
-      const claudeUncPath = toWslUncPath(distro, claudePosixPath);
-      const key = claudeUncPath.toLowerCase();
+      const factoryPosixPath = path.posix.join(normalizedHome, '.factory');
+      const factoryUncPath = toWslUncPath(distro, factoryPosixPath);
+      const key = factoryUncPath.toLowerCase();
       if (seen.has(key)) {
         continue;
       }
       seen.add(key);
 
-      const projectsPath = path.join(claudeUncPath, 'projects');
-      const hasProjectsDir = (() => {
+      const sessionsPath = path.join(factoryUncPath, 'sessions');
+      const hasSessionsDir = (() => {
         try {
-          return fs.existsSync(projectsPath) && fs.statSync(projectsPath).isDirectory();
+          return fs.existsSync(sessionsPath) && fs.statSync(sessionsPath).isDirectory();
         } catch {
           return false;
         }
@@ -939,17 +939,17 @@ async function handleFindWslClaudeRoots(
 
       candidates.push({
         distro,
-        path: claudeUncPath,
-        hasProjectsDir,
+        path: factoryUncPath,
+        hasSessionsDir,
       });
     }
 
     return { success: true, data: candidates };
   } catch (error) {
-    logger.error('Error in config:findWslClaudeRoots:', error);
+    logger.error('Error in config:findWslFactoryRoots:', error);
     return {
       success: false,
-      error: error instanceof Error ? error.message : 'Failed to detect WSL Claude paths',
+      error: error instanceof Error ? error.message : 'Failed to detect WSL Factory paths',
     };
   }
 }
@@ -1079,9 +1079,9 @@ export function removeConfigHandlers(ipcMain: IpcMain): void {
   ipcMain.removeHandler('config:hideSessions');
   ipcMain.removeHandler('config:unhideSessions');
   ipcMain.removeHandler('config:selectFolders');
-  ipcMain.removeHandler('config:selectClaudeRootFolder');
-  ipcMain.removeHandler('config:getClaudeRootInfo');
-  ipcMain.removeHandler('config:findWslClaudeRoots');
+  ipcMain.removeHandler('config:selectFactoryRootFolder');
+  ipcMain.removeHandler('config:getFactoryRootInfo');
+  ipcMain.removeHandler('config:findWslFactoryRoots');
   ipcMain.removeHandler('config:openInEditor');
   logger.info('Config handlers removed');
 }

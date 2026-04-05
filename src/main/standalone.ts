@@ -8,7 +8,7 @@
  * Environment variables:
  * - HOST: Bind address (default '0.0.0.0')
  * - PORT: Listen port (default 3456)
- * - CLAUDE_ROOT: Path to .claude directory (default ~/.claude)
+ * - FACTORY_ROOT: Path to .factory directory (default ~/.factory)
  * - CORS_ORIGIN: CORS origin policy (default '*')
  */
 
@@ -19,9 +19,14 @@ import { HttpServer } from './services/infrastructure/HttpServer';
 import {
   getProjectsBasePath,
   getTodosBasePath,
-  setClaudeBasePathOverride,
+  setFactoryBasePathOverride,
 } from './utils/pathDecoder';
-import { ConfigManager, LocalFileSystemProvider, NotificationManager, ServiceContext } from './services';
+import {
+  ConfigManager,
+  LocalFileSystemProvider,
+  NotificationManager,
+  ServiceContext,
+} from './services';
 
 import type { HttpServices } from './http';
 import type { SshConnectionManager } from './services/infrastructure/SshConnectionManager';
@@ -35,7 +40,7 @@ const logger = createLogger('Standalone');
 
 const HOST = process.env.HOST ?? '0.0.0.0';
 const PORT = parseInt(process.env.PORT ?? '3456', 10);
-const CLAUDE_ROOT = process.env.CLAUDE_ROOT;
+const FACTORY_ROOT = process.env.FACTORY_ROOT;
 
 // Default CORS to allow all in standalone mode (Docker isolation replaces CORS)
 if (!process.env.CORS_ORIGIN) {
@@ -91,17 +96,16 @@ async function start(): Promise<void> {
   logger.info('Starting standalone server...');
 
   // Load config from disk before anything else uses it.
-  // When CLAUDE_ROOT is set (e.g. Docker), config lives there rather than ~/.claude.
-  const configPath = CLAUDE_ROOT
-    ? path.join(CLAUDE_ROOT, 'claude-devtools-config.json')
+  // When FACTORY_ROOT is set (e.g. Docker), config lives there rather than ~/.factory.
+  const configPath = FACTORY_ROOT
+    ? path.join(FACTORY_ROOT, 'droid-devtools-config.json')
     : undefined;
   await ConfigManager.initializeInstance(configPath);
 
-
-  // Apply Claude root override if set
-  if (CLAUDE_ROOT) {
-    setClaudeBasePathOverride(CLAUDE_ROOT);
-    logger.info(`Using CLAUDE_ROOT: ${CLAUDE_ROOT}`);
+  // Apply Factory root override if set
+  if (FACTORY_ROOT) {
+    setFactoryBasePathOverride(FACTORY_ROOT);
+    logger.info(`Using FACTORY_ROOT: ${FACTORY_ROOT}`);
   }
 
   const projectsDir = getProjectsBasePath();
@@ -163,7 +167,7 @@ async function start(): Promise<void> {
   // Start the server
   const port = await httpServer.start(services, modeSwitchHandler, PORT, HOST);
   logger.info(`Standalone server running at http://${HOST}:${port}`);
-  logger.info('Open in your browser to view Claude Code sessions');
+  logger.info('Open in your browser to view Droid sessions');
 }
 
 async function shutdown(): Promise<void> {

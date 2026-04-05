@@ -286,7 +286,7 @@ export function useSettingsHandlers({
           showDockIcon: true,
           theme: 'dark',
           defaultTab: 'dashboard',
-          claudeRootPath: null,
+          factoryRootPath: null,
           autoExpandAIGroups: false,
           useNativeTitleBar: false,
         },

@@ -202,7 +202,7 @@ function validateGeneralSection(data: unknown): ValidationSuccess<'general'> | V
     'showDockIcon',
     'theme',
     'defaultTab',
-    'claudeRootPath',
+    'factoryRootPath',
     'autoExpandAIGroups',
     'useNativeTitleBar',
   ];
@@ -242,31 +242,31 @@ function validateGeneralSection(data: unknown): ValidationSuccess<'general'> | V
         }
         result.defaultTab = value;
         break;
-      case 'claudeRootPath':
+      case 'factoryRootPath':
         if (value === null) {
-          result.claudeRootPath = null;
+          result.factoryRootPath = null;
           break;
         }
         if (typeof value !== 'string') {
           return {
             valid: false,
-            error: 'general.claudeRootPath must be an absolute path string or null',
+            error: 'general.factoryRootPath must be an absolute path string or null',
           };
         }
         {
           const trimmed = value.trim();
           if (!trimmed) {
-            result.claudeRootPath = null;
+            result.factoryRootPath = null;
             break;
           }
           const normalized = path.normalize(trimmed);
           if (!path.isAbsolute(normalized)) {
             return {
               valid: false,
-              error: 'general.claudeRootPath must be an absolute path',
+              error: 'general.factoryRootPath must be an absolute path',
             };
           }
-          result.claudeRootPath = path.resolve(normalized);
+          result.factoryRootPath = path.resolve(normalized);
         }
         break;
       case 'autoExpandAIGroups':

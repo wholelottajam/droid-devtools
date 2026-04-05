@@ -3,8 +3,8 @@
  *
  * Handlers:
  * - shell:openPath: Opens a folder or file in the system's default application
- * - read-claude-md-files: Reads all global CLAUDE.md files for a project
- * - read-directory-claude-md: Reads a specific directory's CLAUDE.md file
+ * - read-agents-md-files: Reads all global AGENTS.md files for a project
+ * - read-directory-agents-md: Reads a specific directory's AGENTS.md file
  * - read-mentioned-file: Validates mentioned files for context injection
  */
 
@@ -12,7 +12,12 @@ import { createLogger } from '@shared/utils/logger';
 import { app, type IpcMain, type IpcMainInvokeEvent, shell } from 'electron';
 import * as fs from 'fs';
 
-import { type ClaudeMdFileInfo, readAgentConfigs, readAllClaudeMdFiles, readDirectoryClaudeMd } from '../services';
+import {
+  type AgentsMdFileInfo,
+  readAgentConfigs,
+  readAllAgentsMdFiles,
+  readDirectoryAgentsMd,
+} from '../services';
 
 import type { AgentConfig } from '@shared/types/api';
 
@@ -27,8 +32,8 @@ export function registerUtilityHandlers(ipcMain: IpcMain): void {
   ipcMain.handle('get-app-version', handleGetAppVersion);
   ipcMain.handle('shell:openPath', handleShellOpenPath);
   ipcMain.handle('shell:openExternal', handleShellOpenExternal);
-  ipcMain.handle('read-claude-md-files', handleReadClaudeMdFiles);
-  ipcMain.handle('read-directory-claude-md', handleReadDirectoryClaudeMd);
+  ipcMain.handle('read-agents-md-files', handleReadAgentsMdFiles);
+  ipcMain.handle('read-directory-agents-md', handleReadDirectoryAgentsMd);
   ipcMain.handle('read-mentioned-file', handleReadMentionedFile);
   ipcMain.handle('read-agent-configs', handleReadAgentConfigs);
 
@@ -42,8 +47,8 @@ export function removeUtilityHandlers(ipcMain: IpcMain): void {
   ipcMain.removeHandler('get-app-version');
   ipcMain.removeHandler('shell:openPath');
   ipcMain.removeHandler('shell:openExternal');
-  ipcMain.removeHandler('read-claude-md-files');
-  ipcMain.removeHandler('read-directory-claude-md');
+  ipcMain.removeHandler('read-agents-md-files');
+  ipcMain.removeHandler('read-directory-agents-md');
   ipcMain.removeHandler('read-mentioned-file');
   ipcMain.removeHandler('read-agent-configs');
 
@@ -135,41 +140,41 @@ async function handleShellOpenPath(
 }
 
 /**
- * Handler for 'read-claude-md-files' IPC call.
+ * Handler for 'read-agents-md-files' IPC call.
  * Reads all global CLAUDE.md files for a project.
  */
-async function handleReadClaudeMdFiles(
+async function handleReadAgentsMdFiles(
   _event: IpcMainInvokeEvent,
   projectRoot: string
-): Promise<Record<string, ClaudeMdFileInfo>> {
+): Promise<Record<string, AgentsMdFileInfo>> {
   try {
-    const result = await readAllClaudeMdFiles(projectRoot);
+    const result = await readAllAgentsMdFiles(projectRoot);
     // Convert Map to object for IPC serialization
-    const files: Record<string, ClaudeMdFileInfo> = {};
+    const files: Record<string, AgentsMdFileInfo> = {};
     result.files.forEach((info, key) => {
       files[key] = info;
     });
 
     return files;
   } catch (error) {
-    logger.error(`Error in read-claude-md-files:`, error);
+    logger.error(`Error in read-agents-md-files:`, error);
     return {};
   }
 }
 
 /**
- * Handler for 'read-directory-claude-md' IPC call.
+ * Handler for 'read-directory-agents-md' IPC call.
  * Reads a specific directory's CLAUDE.md file.
  */
-async function handleReadDirectoryClaudeMd(
+async function handleReadDirectoryAgentsMd(
   _event: IpcMainInvokeEvent,
   dirPath: string
-): Promise<ClaudeMdFileInfo> {
+): Promise<AgentsMdFileInfo> {
   try {
-    const info = await readDirectoryClaudeMd(dirPath);
+    const info = await readDirectoryAgentsMd(dirPath);
     return info;
   } catch (error) {
-    logger.error(`Error in read-directory-claude-md:`, error);
+    logger.error(`Error in read-directory-agents-md:`, error);
     return {
       path: dirPath,
       exists: false,

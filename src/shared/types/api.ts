@@ -98,12 +98,12 @@ export interface ConfigAPI {
   testTrigger: (trigger: NotificationTrigger) => Promise<TriggerTestResult>;
   /** Opens native folder selection dialog and returns selected paths */
   selectFolders: () => Promise<string[]>;
-  /** Open native dialog to select local Claude root folder */
-  selectClaudeRootFolder: () => Promise<ClaudeRootFolderSelection | null>;
-  /** Get resolved Claude root path info for local mode */
-  getClaudeRootInfo: () => Promise<ClaudeRootInfo>;
-  /** Find Windows WSL Claude root candidates (UNC paths) */
-  findWslClaudeRoots: () => Promise<WslClaudeRootCandidate[]>;
+  /** Open native dialog to select local Factory root folder */
+  selectFactoryRootFolder: () => Promise<FactoryRootFolderSelection | null>;
+  /** Get resolved Factory root path info for local mode */
+  getFactoryRootInfo: () => Promise<FactoryRootInfo>;
+  /** Find Windows WSL Factory root candidates (UNC paths) */
+  findWslFactoryRoots: () => Promise<WslFactoryRootCandidate[]>;
   /** Opens the config JSON file in an external editor */
   openInEditor: () => Promise<void>;
   /** Pin a session for a project */
@@ -120,8 +120,8 @@ export interface ConfigAPI {
   unhideSessions: (projectId: string, sessionIds: string[]) => Promise<void>;
 }
 
-export interface ClaudeRootInfo {
-  /** Auto-detected default Claude root path for this machine */
+export interface FactoryRootInfo {
+  /** Auto-detected default Factory root path for this machine */
   defaultPath: string;
   /** Effective path currently used by local context */
   resolvedPath: string;
@@ -129,22 +129,22 @@ export interface ClaudeRootInfo {
   customPath: string | null;
 }
 
-export interface ClaudeRootFolderSelection {
+export interface FactoryRootFolderSelection {
   /** Selected directory absolute path */
   path: string;
-  /** Whether the selected folder name is exactly ".claude" */
-  isClaudeDirName: boolean;
-  /** Whether selected folder contains a "projects" directory */
-  hasProjectsDir: boolean;
+  /** Whether the selected folder name is exactly ".factory" */
+  isFactoryDirName: boolean;
+  /** Whether selected folder contains a "sessions" directory */
+  hasSessionsDir: boolean;
 }
 
-export interface WslClaudeRootCandidate {
+export interface WslFactoryRootCandidate {
   /** WSL distribution name (e.g. Ubuntu) */
   distro: string;
-  /** Candidate Claude root path in UNC format */
+  /** Candidate Factory root path in UNC format */
   path: string;
-  /** True if this root contains "projects" directory */
-  hasProjectsDir: boolean;
+  /** True if this root contains "sessions" directory */
+  hasSessionsDir: boolean;
 }
 
 // =============================================================================
@@ -165,7 +165,7 @@ export interface SessionAPI {
 /**
  * CLAUDE.md file information returned from reading operations.
  */
-export interface ClaudeMdFileInfo {
+export interface AgentsMdFileInfo {
   path: string;
   exists: boolean;
   charCount: number;
@@ -371,13 +371,13 @@ export interface ElectronAPI {
   ) => Promise<Record<string, boolean>>;
 
   // CLAUDE.md reading methods
-  readClaudeMdFiles: (projectRoot: string) => Promise<Record<string, ClaudeMdFileInfo>>;
-  readDirectoryClaudeMd: (dirPath: string) => Promise<ClaudeMdFileInfo>;
+  readAgentsMdFiles: (projectRoot: string) => Promise<Record<string, AgentsMdFileInfo>>;
+  readDirectoryAgentsMd: (dirPath: string) => Promise<AgentsMdFileInfo>;
   readMentionedFile: (
     absolutePath: string,
     projectRoot: string,
     maxTokens?: number
-  ) => Promise<ClaudeMdFileInfo | null>;
+  ) => Promise<AgentsMdFileInfo | null>;
 
   // Agent config reading
   readAgentConfigs: (projectRoot: string) => Promise<Record<string, AgentConfig>>;

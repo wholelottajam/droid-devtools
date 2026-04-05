@@ -12,7 +12,7 @@ import {
   COLOR_TEXT_MUTED,
 } from '@renderer/constants/cssVariables';
 
-import { ClaudeMdFilesSection } from './components/ClaudeMdFilesSection';
+import { AgentsMdFilesSection } from './components/AgentsMdFilesSection';
 import { FlatInjectionList } from './components/FlatInjectionList';
 import { MentionedFilesSection } from './components/MentionedFilesSection';
 import { RankedInjectionList } from './components/RankedInjectionList';
@@ -22,7 +22,7 @@ import { ThinkingTextSection } from './components/ThinkingTextSection';
 import { ToolOutputsSection } from './components/ToolOutputsSection';
 import { UserMessagesSection } from './components/UserMessagesSection';
 import {
-  SECTION_CLAUDE_MD,
+  SECTION_AGENTS_MD,
   SECTION_MENTIONED_FILES,
   SECTION_TASK_COORDINATION,
   SECTION_THINKING_TEXT,
@@ -32,7 +32,7 @@ import {
 
 import type { ContextViewMode, SectionType, SessionContextPanelProps } from './types';
 import type {
-  ClaudeMdContextInjection,
+  AgentsMdContextInjection,
   MentionedFileInjection,
   TaskCoordinationInjection,
   ThinkingTextInjection,
@@ -61,7 +61,7 @@ export const SessionContextPanel = ({
   const [expandedSections, setExpandedSections] = useState<Set<SectionType>>(
     new Set([
       SECTION_USER_MESSAGES,
-      SECTION_CLAUDE_MD,
+      SECTION_AGENTS_MD,
       SECTION_MENTIONED_FILES,
       SECTION_TOOL_OUTPUTS,
       SECTION_TASK_COORDINATION,
@@ -78,7 +78,7 @@ export const SessionContextPanel = ({
     taskCoordinationInjections,
     userMessageInjections,
   } = useMemo(() => {
-    const claudeMd: ClaudeMdContextInjection[] = [];
+    const claudeMd: AgentsMdContextInjection[] = [];
     const mentionedFiles: MentionedFileInjection[] = [];
     const toolOutputs: ToolOutputInjection[] = [];
     const thinkingText: ThinkingTextInjection[] = [];
@@ -217,11 +217,11 @@ export const SessionContextPanel = ({
               onNavigateToTurn={onNavigateToTurn}
             />
 
-            <ClaudeMdFilesSection
+            <AgentsMdFilesSection
               injections={claudeMdInjections}
               tokenCount={claudeMdTokens}
-              isExpanded={expandedSections.has(SECTION_CLAUDE_MD)}
-              onToggle={() => toggleSection(SECTION_CLAUDE_MD)}
+              isExpanded={expandedSections.has(SECTION_AGENTS_MD)}
+              onToggle={() => toggleSection(SECTION_AGENTS_MD)}
               projectRoot={projectRoot ?? ''}
               onNavigateToTurn={onNavigateToTurn}
             />

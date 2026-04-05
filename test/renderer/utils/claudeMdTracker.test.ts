@@ -1,12 +1,12 @@
 import { describe, expect, it } from 'vitest';
 
 import {
-  detectClaudeMdFromFilePath,
+  detectAgentsMdFromFilePath,
   getDirectory,
   getParentDirectory,
-} from '@renderer/utils/claudeMdTracker';
+} from '@renderer/utils/agentsMdTracker';
 
-describe('claudeMdTracker path helpers', () => {
+describe('agentsMdTracker path helpers', () => {
   describe('getDirectory', () => {
     it('returns directory from Unix path', () => {
       expect(getDirectory('/a/b/file.ts')).toBe('/a/b');
@@ -51,29 +51,29 @@ describe('claudeMdTracker path helpers', () => {
     });
   });
 
-  describe('detectClaudeMdFromFilePath', () => {
-    it('detects CLAUDE.md files walking up Unix paths', () => {
-      const result = detectClaudeMdFromFilePath('/repo/src/lib/file.ts', '/repo');
-      expect(result).toContain('/repo/src/lib/CLAUDE.md');
-      expect(result).toContain('/repo/src/CLAUDE.md');
-      expect(result).toContain('/repo/CLAUDE.md');
+  describe('detectAgentsMdFromFilePath', () => {
+    it('detects AGENTS.md files walking up Unix paths', () => {
+      const result = detectAgentsMdFromFilePath('/repo/src/lib/file.ts', '/repo');
+      expect(result).toContain('/repo/src/lib/AGENTS.md');
+      expect(result).toContain('/repo/src/AGENTS.md');
+      expect(result).toContain('/repo/AGENTS.md');
       expect(result).toHaveLength(3);
     });
 
-    it('detects CLAUDE.md files walking up Windows paths', () => {
-      const result = detectClaudeMdFromFilePath('C:\\repo\\src\\file.ts', 'C:\\repo');
-      expect(result).toContain('C:\\repo\\src\\CLAUDE.md');
-      expect(result).toContain('C:\\repo\\CLAUDE.md');
+    it('detects AGENTS.md files walking up Windows paths', () => {
+      const result = detectAgentsMdFromFilePath('C:\\repo\\src\\file.ts', 'C:\\repo');
+      expect(result).toContain('C:\\repo\\src\\AGENTS.md');
+      expect(result).toContain('C:\\repo\\AGENTS.md');
       expect(result).toHaveLength(2);
     });
 
     it('uses correct separator for generated paths', () => {
-      const unixResult = detectClaudeMdFromFilePath('/repo/src/file.ts', '/repo');
+      const unixResult = detectAgentsMdFromFilePath('/repo/src/file.ts', '/repo');
       for (const p of unixResult) {
         expect(p).not.toContain('\\');
       }
 
-      const winResult = detectClaudeMdFromFilePath('C:\\repo\\src\\file.ts', 'C:\\repo');
+      const winResult = detectAgentsMdFromFilePath('C:\\repo\\src\\file.ts', 'C:\\repo');
       for (const p of winResult) {
         expect(p).toContain('\\');
         expect(p).not.toContain('/');
@@ -81,12 +81,12 @@ describe('claudeMdTracker path helpers', () => {
     });
 
     it('returns empty array when file is at project root', () => {
-      const result = detectClaudeMdFromFilePath('/repo/file.ts', '/repo');
-      expect(result).toEqual(['/repo/CLAUDE.md']);
+      const result = detectAgentsMdFromFilePath('/repo/file.ts', '/repo');
+      expect(result).toEqual(['/repo/AGENTS.md']);
     });
 
     it('stops at project root boundary', () => {
-      const result = detectClaudeMdFromFilePath('/repo/src/file.ts', '/repo');
+      const result = detectAgentsMdFromFilePath('/repo/src/file.ts', '/repo');
       // Should not go above /repo
       const aboveRoot = result.some((p) => !p.startsWith('/repo'));
       expect(aboveRoot).toBe(false);

@@ -18,7 +18,10 @@ type EntryType =
   | 'system'
   | 'summary'
   | 'file-history-snapshot'
-  | 'queue-operation';
+  | 'queue-operation'
+  | 'message'
+  | 'session_start'
+  | 'todo_state';
 
 type ContentType = 'text' | 'thinking' | 'tool_use' | 'tool_result' | 'image';
 
@@ -209,13 +212,63 @@ export interface QueueOperationEntry extends BaseEntry {
   operation: string;
 }
 
+// =============================================================================
+// Droid/Factory Entry Types
+// =============================================================================
+
+/**
+ * Droid wraps all conversational messages in a `{type: "message", message: {...}}` envelope.
+ * The inner `message` contains role/content, while id/timestamp/parentId live on the wrapper.
+ */
+export interface DroidMessageEntry {
+  type: 'message';
+  id: string;
+  timestamp: string;
+  parentId?: string;
+  message: {
+    role: 'user' | 'assistant';
+    content: string | ContentBlock[];
+    /** Provider-specific fields (e.g., openaiEncryptedContent) are ignored */
+    [key: string]: unknown;
+  };
+}
+
+/**
+ * Droid session_start entry — first line of every JSONL file.
+ * Provides authoritative session metadata.
+ */
+export interface SessionStartEntry {
+  type: 'session_start';
+  id: string;
+  timestamp?: string;
+  title?: string;
+  sessionTitle?: string;
+  owner?: string;
+  version?: number;
+  cwd: string;
+}
+
+/**
+ * Droid inline todo state snapshots.
+ */
+export interface TodoStateEntry {
+  type: 'todo_state';
+  id: string;
+  timestamp: string;
+  todos: unknown[];
+  messageIndex: number;
+}
+
 export type ChatHistoryEntry =
   | UserEntry
   | AssistantEntry
   | SystemEntry
   | SummaryEntry
   | FileHistorySnapshotEntry
-  | QueueOperationEntry;
+  | QueueOperationEntry
+  | DroidMessageEntry
+  | SessionStartEntry
+  | TodoStateEntry;
 
 /**
  * Conversational entries - entries that represent chat messages.
@@ -240,6 +293,20 @@ export function isToolResultContent(content: ContentBlock): content is ToolResul
  */
 export function isConversationalEntry(entry: ChatHistoryEntry): entry is ConversationalChatEntry {
   return entry.type === 'user' || entry.type === 'assistant' || entry.type === 'system';
+}
+
+/**
+ * Type guard for Droid's wrapped message format.
+ */
+export function isDroidMessageEntry(entry: ChatHistoryEntry): entry is DroidMessageEntry {
+  return entry.type === 'message' && 'message' in entry;
+}
+
+/**
+ * Type guard for Droid's session_start entry.
+ */
+export function isSessionStartEntry(entry: ChatHistoryEntry): entry is SessionStartEntry {
+  return entry.type === 'session_start';
 }
 
 // =============================================================================

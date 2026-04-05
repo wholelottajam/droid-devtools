@@ -21,7 +21,7 @@ import { extractMainModel, extractSubagentModels } from './modelExtractor';
 import { type PrecedingSlashInfo } from './slashCommandExtractor';
 import { linkToolCallsToResults } from './toolLinkingEngine';
 
-import type { ClaudeMdStats } from '../types/claudeMd';
+import type { AgentsMdStats } from '../types/agentsMd';
 import type { AIGroup, EnhancedAIGroup } from '../types/groups';
 
 // Re-export types and functions that are part of the public API
@@ -45,7 +45,7 @@ export { linkToolCallsToResults } from './toolLinkingEngine';
  */
 export function enhanceAIGroup(
   aiGroup: AIGroup,
-  claudeMdStats?: ClaudeMdStats,
+  claudeMdStats?: AgentsMdStats,
   precedingSlash?: PrecedingSlashInfo
 ): EnhancedAIGroup {
   // Pass isOngoing to findLastOutput - if ongoing, it returns 'ongoing' type instead of forcing a last output

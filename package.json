@@ -1,11 +1,11 @@
 {
-  "name": "claude-devtools",
+  "name": "droid-devtools",
   "type": "module",
   "version": "0.1.0",
-  "description": "Desktop app that visualizes Claude Code session execution — explore conversations, track context usage, and analyze tool calls",
+  "description": "Desktop app that visualizes Droid/Factory CLI session execution — explore conversations, track context usage, and analyze tool calls",
   "license": "MIT",
   "author": {
-    "name": "claude-devtools contributors",
+    "name": "droid-devtools contributors",
     "email": "matt1398@users.noreply.github.com"
   },
   "homepage": "https://github.com/matt1398/claude-devtools",
@@ -114,8 +114,8 @@
     "vitest": "^3.1.4"
   },
   "build": {
-    "appId": "com.claudecode.context",
-    "productName": "claude-devtools",
+    "appId": "com.factory.droid-devtools",
+    "productName": "droid-devtools",
     "directories": {
       "output": "release"
     },

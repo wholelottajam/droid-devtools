@@ -5,4 +5,4 @@
  * The canonical definitions are in @shared/types/api.
  */
 
-export { type ClaudeMdFileInfo } from '@shared/types';
+export { type AgentsMdFileInfo } from '@shared/types';

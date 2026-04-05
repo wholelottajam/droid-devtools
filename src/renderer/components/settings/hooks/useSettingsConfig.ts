@@ -29,7 +29,7 @@ export interface SafeConfig {
     showDockIcon: boolean;
     theme: 'dark' | 'light' | 'system';
     defaultTab: 'dashboard' | 'last-session';
-    claudeRootPath: string | null;
+    factoryRootPath: string | null;
     autoExpandAIGroups: boolean;
     useNativeTitleBar: boolean;
   };
@@ -155,7 +155,7 @@ export function useSettingsConfig(): UseSettingsConfigReturn {
         showDockIcon: displayConfig?.general?.showDockIcon ?? true,
         theme: displayConfig?.general?.theme ?? 'dark',
         defaultTab: displayConfig?.general?.defaultTab ?? 'dashboard',
-        claudeRootPath: displayConfig?.general?.claudeRootPath ?? null,
+        factoryRootPath: displayConfig?.general?.factoryRootPath ?? null,
         autoExpandAIGroups: displayConfig?.general?.autoExpandAIGroups ?? false,
         useNativeTitleBar: displayConfig?.general?.useNativeTitleBar ?? false,
       },

@@ -430,10 +430,10 @@ export class SshConnectionManager extends EventEmitter {
     // Prefer remote $HOME when available, then fall back to common paths.
     const remoteHome = await this.resolveRemoteHomeDirectory();
     const candidates = [
-      ...(remoteHome ? [path.posix.join(remoteHome, '.claude', 'projects')] : []),
-      `/home/${username}/.claude/projects`,
-      `/Users/${username}/.claude/projects`,
-      `/root/.claude/projects`,
+      ...(remoteHome ? [path.posix.join(remoteHome, '.factory', 'sessions')] : []),
+      `/home/${username}/.factory/sessions`,
+      `/Users/${username}/.factory/sessions`,
+      `/root/.factory/sessions`,
     ];
 
     for (const candidate of [...new Set(candidates)]) {
@@ -444,11 +444,11 @@ export class SshConnectionManager extends EventEmitter {
 
     // Fallback to inferred home-based path when we could resolve $HOME.
     if (remoteHome) {
-      return path.posix.join(remoteHome, '.claude', 'projects');
+      return path.posix.join(remoteHome, '.factory', 'sessions');
     }
 
     // Final fallback: Linux convention.
-    return `/home/${username}/.claude/projects`;
+    return `/home/${username}/.factory/sessions`;
   }
 
   /**

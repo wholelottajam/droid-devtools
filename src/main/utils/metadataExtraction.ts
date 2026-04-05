@@ -7,7 +7,13 @@ import { createLogger } from '@shared/utils/logger';
 import * as readline from 'readline';
 
 import { LocalFileSystemProvider } from '../services/infrastructure/LocalFileSystemProvider';
-import { type ChatHistoryEntry, isTextContent, type UserEntry } from '../types';
+import {
+  type ChatHistoryEntry,
+  isDroidMessageEntry,
+  isSessionStartEntry,
+  isTextContent,
+  type UserEntry,
+} from '../types';
 
 import { translateWslMountPath } from './pathDecoder';
 
@@ -57,7 +63,15 @@ export async function extractCwd(
       if (!line.trim()) continue;
 
       const entry = JSON.parse(line) as ChatHistoryEntry;
-      // Only conversational entries have cwd
+
+      // Droid session_start entry has authoritative cwd
+      if (isSessionStartEntry(entry) && entry.cwd) {
+        rl.close();
+        fileStream.destroy();
+        return normalizeDriveLetter(translateWslMountPath(entry.cwd));
+      }
+
+      // Claude Code conversational entries have cwd
       if ('cwd' in entry && entry.cwd) {
         rl.close();
         fileStream.destroy();
@@ -91,6 +105,7 @@ export async function extractFirstUserMessagePreview(
   });
 
   let commandFallback: { text: string; timestamp: string } | null = null;
+  let sessionStartFallback: { text: string; timestamp: string } | null = null;
   let linesRead = 0;
 
   try {
@@ -109,11 +124,43 @@ export async function extractFirstUserMessagePreview(
         continue;
       }
 
-      if (entry.type !== 'user') {
+      // Droid session_start: capture title as fallback
+      if (isSessionStartEntry(entry)) {
+        const title = entry.sessionTitle ?? entry.title;
+        if (title) {
+          sessionStartFallback = {
+            text: title.substring(0, 500),
+            timestamp: new Date().toISOString(),
+          };
+        }
         continue;
       }
 
-      const preview = extractPreviewFromUserEntry(entry);
+      // Handle Droid wrapped user messages
+      let userEntry: UserEntry | undefined;
+      if (entry.type === 'user') {
+        userEntry = entry;
+      } else if (isDroidMessageEntry(entry) && entry.message.role === 'user') {
+        // Check it's not a tool-result (internal) message
+        const content = entry.message.content;
+        const hasToolResult =
+          Array.isArray(content) &&
+          content.some((b) => typeof b === 'object' && b !== null && b.type === 'tool_result');
+        if (!hasToolResult) {
+          // Synthesize a UserEntry-like object for extractPreviewFromUserEntry
+          userEntry = {
+            type: 'user',
+            message: { role: 'user', content: entry.message.content },
+            timestamp: entry.timestamp,
+          } as UserEntry;
+        }
+      }
+
+      if (!userEntry) {
+        continue;
+      }
+
+      const preview = extractPreviewFromUserEntry(userEntry);
       if (!preview) {
         continue;
       }
@@ -134,7 +181,7 @@ export async function extractFirstUserMessagePreview(
     fileStream.destroy();
   }
 
-  return commandFallback;
+  return commandFallback ?? sessionStartFallback;
 }
 
 function extractPreviewFromUserEntry(entry: UserEntry): MessagePreview | null {

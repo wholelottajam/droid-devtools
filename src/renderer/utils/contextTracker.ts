@@ -13,20 +13,20 @@ import { estimateTokens } from '@shared/utils/tokenFormatting';
 
 import { MAX_MENTIONED_FILE_TOKENS } from '../types/contextInjection';
 
-import { buildDisplayItems, findLastOutput, linkToolCallsToResults } from './aiGroupEnhancer';
 import {
   createGlobalInjections,
-  detectClaudeMdFromFilePath,
+  detectAgentsMdFromFilePath,
   extractFileRefsFromResponses,
   extractReadToolPaths,
   extractUserMentionPaths,
   generateInjectionId,
   getDisplayName,
-} from './claudeMdTracker';
+} from './agentsMdTracker';
+import { buildDisplayItems, findLastOutput, linkToolCallsToResults } from './aiGroupEnhancer';
 
-import type { ClaudeMdInjection, ClaudeMdSource } from '../types/claudeMd';
+import type { AgentsMdInjection, AgentsMdSource } from '../types/agentsMd';
 import type {
-  ClaudeMdContextInjection,
+  AgentsMdContextInjection,
   CompactionTokenDelta,
   ContextInjection,
   ContextPhase,
@@ -44,7 +44,7 @@ import type {
   ToolTokenBreakdown,
   UserMessageInjection,
 } from '../types/contextInjection';
-import type { ClaudeMdFileInfo } from '../types/data';
+import type { AgentsMdFileInfo } from '../types/data';
 import type {
   AIGroup,
   AIGroupDisplayItem,
@@ -123,9 +123,9 @@ function generateUserMessageId(turnIndex: number): string {
 // =============================================================================
 
 /**
- * Wrap a ClaudeMdInjection with the 'claude-md' category for union compatibility.
+ * Wrap an AgentsMdInjection with the 'claude-md' category for union compatibility.
  */
-function wrapClaudeMdInjection(injection: ClaudeMdInjection): ClaudeMdContextInjection {
+function wrapAgentsMdInjection(injection: AgentsMdInjection): AgentsMdContextInjection {
   return {
     ...injection,
     category: 'claude-md' as const,
@@ -441,11 +441,11 @@ interface ComputeContextStatsParams {
   /** Project root path for resolving relative paths */
   projectRoot: string;
   /** Token data for CLAUDE.md files (global sources) */
-  claudeMdTokenData?: Record<string, ClaudeMdFileInfo>;
+  claudeMdTokenData?: Record<string, AgentsMdFileInfo>;
   /** Token data for mentioned files */
   mentionedFileTokenData?: Map<string, MentionedFileInfo>;
   /** Token data for validated directory CLAUDE.md files (keyed by full path) */
-  directoryTokenData?: Record<string, ClaudeMdFileInfo>;
+  directoryTokenData?: Record<string, AgentsMdFileInfo>;
 }
 
 interface ComputeContextStatsResult {
@@ -579,13 +579,13 @@ function normalizeForComparison(input: string): string {
 }
 
 /**
- * Create a directory injection for a CLAUDE.md file discovered via file paths.
+ * Create a directory injection for an AGENTS.md file discovered via file paths.
  */
-function createDirectoryInjection(path: string, aiGroupId: string): ClaudeMdInjection {
+function createDirectoryInjection(path: string, aiGroupId: string): AgentsMdInjection {
   return {
     id: generateInjectionId(path),
     path,
-    source: 'directory' as ClaudeMdSource,
+    source: 'directory' as AgentsMdSource,
     displayName: getDisplayName(path, 'directory'),
     isGlobal: false,
     estimatedTokens: 500, // Default estimated tokens
@@ -617,19 +617,19 @@ function computeContextStats(params: ComputeContextStatsParams): ComputeContextS
   // Use "ai-N" format for firstSeenInGroup to enable turn navigation
   const turnGroupId = `ai-${aiGroup.turnIndex}`;
 
-  // a) For FIRST group only: Add CLAUDE.md global injections
+  // a) For FIRST group only: Add AGENTS.md global injections
   if (isFirstGroup) {
     const globalInjections = createGlobalInjections(projectRoot, turnGroupId, claudeMdTokenData);
     for (const injection of globalInjections) {
       if (!previousPaths.has(injection.path)) {
-        newInjections.push(wrapClaudeMdInjection(injection));
+        newInjections.push(wrapAgentsMdInjection(injection));
         previousPaths.add(injection.path);
       }
     }
   }
 
-  // b) Detect directory CLAUDE.md from file paths
-  // Only include directory CLAUDE.md files that have been validated to exist
+  // b) Detect directory AGENTS.md from file paths
+  // Only include directory AGENTS.md files that have been validated to exist
   const allFilePaths: string[] = [];
 
   // Extract from Read tool calls in semantic steps
@@ -649,47 +649,47 @@ function computeContextStats(params: ComputeContextStatsParams): ComputeContextS
     }
   }
 
-  // For each file path, detect potential CLAUDE.md files
+  // For each file path, detect potential AGENTS.md files
   for (const filePath of allFilePaths) {
-    const claudeMdPaths = detectClaudeMdFromFilePath(filePath, projectRoot);
+    const agentsMdPaths = detectAgentsMdFromFilePath(filePath, projectRoot);
 
-    for (const claudeMdPath of claudeMdPaths) {
+    for (const agentsMdPath of agentsMdPaths) {
       // Skip if already seen
-      if (previousPaths.has(claudeMdPath)) {
+      if (previousPaths.has(agentsMdPath)) {
         continue;
       }
 
       // Skip if this is a global path (already handled)
       const isGlobalPath =
-        normalizeForComparison(claudeMdPath) ===
-          `${normalizeForComparison(projectRoot)}/CLAUDE.md` ||
-        normalizeForComparison(claudeMdPath) ===
-          `${normalizeForComparison(projectRoot)}/.claude/CLAUDE.md` ||
-        normalizeForComparison(claudeMdPath) ===
-          `${normalizeForComparison(projectRoot)}/CLAUDE.local.md`;
+        normalizeForComparison(agentsMdPath) ===
+          `${normalizeForComparison(projectRoot)}/AGENTS.md` ||
+        normalizeForComparison(agentsMdPath) ===
+          `${normalizeForComparison(projectRoot)}/.factory/AGENTS.md` ||
+        normalizeForComparison(agentsMdPath) ===
+          `${normalizeForComparison(projectRoot)}/AGENTS.local.md`;
 
       if (isGlobalPath) {
         continue;
       }
 
-      // Only include directory CLAUDE.md files that exist (validated via directoryTokenData)
+      // Only include directory AGENTS.md files that exist (validated via directoryTokenData)
       // If directoryTokenData is provided and doesn't contain this path, the file doesn't exist
       if (directoryTokenData) {
-        const fileInfo = directoryTokenData[claudeMdPath];
+        const fileInfo = directoryTokenData[agentsMdPath];
         if (!fileInfo || !fileInfo.exists || fileInfo.estimatedTokens <= 0) {
           // File doesn't exist or has no content - skip it
           continue;
         }
         // Use validated token count from directoryTokenData
-        const injection = createDirectoryInjection(claudeMdPath, turnGroupId);
+        const injection = createDirectoryInjection(agentsMdPath, turnGroupId);
         injection.estimatedTokens = fileInfo.estimatedTokens;
-        newInjections.push(wrapClaudeMdInjection(injection));
-        previousPaths.add(claudeMdPath);
+        newInjections.push(wrapAgentsMdInjection(injection));
+        previousPaths.add(agentsMdPath);
       } else {
         // Fallback: if no directoryTokenData provided, create with default tokens (legacy behavior)
-        const injection = createDirectoryInjection(claudeMdPath, turnGroupId);
-        newInjections.push(wrapClaudeMdInjection(injection));
-        previousPaths.add(claudeMdPath);
+        const injection = createDirectoryInjection(agentsMdPath, turnGroupId);
+        newInjections.push(wrapAgentsMdInjection(injection));
+        previousPaths.add(agentsMdPath);
       }
     }
   }
@@ -965,9 +965,9 @@ function getFirstAssistantTotalTokens(aiGroup: AIGroup): number | undefined {
 export function processSessionContextWithPhases(
   items: ChatItem[],
   projectRoot: string,
-  claudeMdTokenData?: Record<string, ClaudeMdFileInfo>,
+  claudeMdTokenData?: Record<string, AgentsMdFileInfo>,
   mentionedFileTokenData?: Map<string, MentionedFileInfo>,
-  directoryTokenData?: Record<string, ClaudeMdFileInfo>
+  directoryTokenData?: Record<string, AgentsMdFileInfo>
 ): { statsMap: Map<string, ContextStats>; phaseInfo: ContextPhaseInfo } {
   const statsMap = new Map<string, ContextStats>();
   let accumulatedInjections: ContextInjection[] = [];

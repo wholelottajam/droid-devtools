@@ -16,9 +16,12 @@ import { LocalFileSystemProvider } from '../services/infrastructure/LocalFileSys
 import {
   type ChatHistoryEntry,
   type ContentBlock,
+  type DroidMessageEntry,
   EMPTY_METRICS,
   isConversationalEntry,
+  isDroidMessageEntry,
   isParsedUserChunkMessage,
+  isSessionStartEntry,
   isTextContent,
   type MessageType,
   type ParsedMessage,
@@ -100,9 +103,20 @@ export function parseJsonlLine(line: string): ParsedMessage | null {
 
 /**
  * Parse a single JSONL entry into a ParsedMessage.
+ * Handles both Claude Code flat format and Droid wrapped format.
  */
 function parseChatHistoryEntry(entry: ChatHistoryEntry): ParsedMessage | null {
-  // Skip entries without uuid (usually metadata)
+  // Droid wrapped message format: unwrap and parse
+  if (isDroidMessageEntry(entry)) {
+    return parseDroidMessageEntry(entry);
+  }
+
+  // Skip Droid-only metadata entries (session_start, todo_state)
+  if (isSessionStartEntry(entry) || entry.type === 'todo_state') {
+    return null;
+  }
+
+  // Claude Code flat format: existing logic
   if (!entry.uuid) {
     return null;
   }
@@ -190,6 +204,66 @@ function parseChatHistoryEntry(entry: ChatHistoryEntry): ParsedMessage | null {
     sourceToolAssistantUUID,
     toolUseResult,
     requestId,
+  };
+}
+
+/**
+ * Parse a Droid wrapped message entry into a ParsedMessage.
+ *
+ * Droid format: { type: "message", id, timestamp, parentId?, message: { role, content } }
+ * Unwraps to the same ParsedMessage shape the rest of the codebase expects.
+ *
+ * Key differences from Claude Code format:
+ * - No cwd, isSidechain, gitBranch, userType, version on entries (cwd from session_start)
+ * - No model/usage on assistant messages (comes from .settings.json at session level)
+ * - No requestId (no streaming deduplication needed)
+ * - isMeta inferred: user messages with tool_result content are internal/meta
+ */
+function parseDroidMessageEntry(entry: DroidMessageEntry): ParsedMessage | null {
+  const { id, timestamp, parentId, message } = entry;
+  const { role, content } = message;
+
+  const type: MessageType = role === 'assistant' ? 'assistant' : 'user';
+
+  // Infer isMeta for user messages: if content is an array containing tool_result blocks,
+  // this is an internal message (tool result feedback), not a real user message.
+  let isMeta = false;
+  if (role === 'user' && Array.isArray(content)) {
+    const hasToolResult = content.some(
+      (block) => typeof block === 'object' && block !== null && block.type === 'tool_result'
+    );
+    if (hasToolResult) {
+      isMeta = true;
+    }
+  }
+
+  const toolCalls = extractToolCalls(content);
+  const toolResultsList = extractToolResults(content);
+
+  return {
+    uuid: id,
+    parentUuid: parentId ?? null,
+    type,
+    timestamp: timestamp ? new Date(timestamp) : new Date(),
+    role,
+    content: content ?? '',
+    usage: undefined,
+    model: undefined,
+    // Droid entries don't carry per-message metadata — cwd comes from session_start
+    cwd: undefined,
+    gitBranch: undefined,
+    agentId: undefined,
+    isSidechain: false,
+    isMeta,
+    userType: undefined,
+    isCompactSummary: false,
+    // Tool info
+    toolCalls,
+    toolResults: toolResultsList,
+    sourceToolUseID: undefined,
+    sourceToolAssistantUUID: undefined,
+    toolUseResult: undefined,
+    requestId: undefined,
   };
 }
 
@@ -379,6 +453,8 @@ export async function analyzeSessionFileMetadata(
 
   let firstUserMessage: { text: string; timestamp: string } | null = null;
   let firstCommandMessage: { text: string; timestamp: string } | null = null;
+
+  let sessionStartTitle: string | null = null;
   let messageCount = 0;
   let hasDisplayableContent = false;
   // After a UserGroup, await the first main-thread assistant message to count the AIGroup
@@ -412,13 +488,25 @@ export async function analyzeSessionFileMetadata(
       continue;
     }
 
+    // Capture Droid session_start title before parsing (parseChatHistoryEntry returns null for it)
+    if (isSessionStartEntry(entry) && !sessionStartTitle) {
+      sessionStartTitle = entry.sessionTitle ?? entry.title ?? null;
+    }
+
     const parsed = parseChatHistoryEntry(entry);
     if (!parsed) {
       continue;
     }
 
-    if (!hasDisplayableContent && entry.uuid) {
-      if (SessionContentFilter.isDisplayableEntry(entry)) {
+    // For Droid format, use the parsed message's uuid for displayability check
+    const entryId =
+      ('uuid' in entry ? entry.uuid : undefined) ??
+      ('id' in entry ? (entry as { id?: string }).id : undefined);
+    if (!hasDisplayableContent && entryId) {
+      // For Droid wrapped entries, check displayability via the parsed message
+      if (isDroidMessageEntry(entry)) {
+        hasDisplayableContent = true;
+      } else if (SessionContentFilter.isDisplayableEntry(entry)) {
         hasDisplayableContent = true;
       }
     }
@@ -440,8 +528,19 @@ export async function analyzeSessionFileMetadata(
       gitBranch = entry.gitBranch;
     }
 
-    if (!firstUserMessage && entry.type === 'user') {
-      const content = entry.message?.content;
+    // Extract first user message — handle both Claude (entry.type === 'user')
+    // and Droid (entry.type === 'message', message.role === 'user') formats
+    const isDroidUserMsg =
+      isDroidMessageEntry(entry) && entry.message.role === 'user' && !parsed.isMeta;
+    if (!firstUserMessage && (entry.type === 'user' || isDroidUserMsg)) {
+      // Extract content and timestamp from either format
+      const content = isDroidMessageEntry(entry)
+        ? entry.message.content
+        : (entry as { message?: { content?: string | ContentBlock[] } }).message?.content;
+      const entryTimestamp =
+        ('timestamp' in entry ? (entry as { timestamp?: string }).timestamp : undefined) ??
+        new Date().toISOString();
+
       if (typeof content === 'string') {
         if (isCommandOutputContent(content)) {
           // Skip
@@ -453,7 +552,7 @@ export async function analyzeSessionFileMetadata(
             const commandName = commandMatch ? `/${commandMatch[1]}` : '/command';
             firstCommandMessage = {
               text: commandName,
-              timestamp: entry.timestamp ?? new Date().toISOString(),
+              timestamp: entryTimestamp,
             };
           }
         } else {
@@ -461,7 +560,7 @@ export async function analyzeSessionFileMetadata(
           if (sanitized.length > 0) {
             firstUserMessage = {
               text: sanitized.substring(0, 500),
-              timestamp: entry.timestamp ?? new Date().toISOString(),
+              timestamp: entryTimestamp,
             };
           }
         }
@@ -479,7 +578,7 @@ export async function analyzeSessionFileMetadata(
           if (sanitized.length > 0) {
             firstUserMessage = {
               text: sanitized.substring(0, 500),
-              timestamp: entry.timestamp ?? new Date().toISOString(),
+              timestamp: entryTimestamp,
             };
           }
         }
@@ -632,7 +731,12 @@ export async function analyzeSessionFileMetadata(
   }
 
   return {
-    firstUserMessage: firstUserMessage ?? firstCommandMessage,
+    firstUserMessage:
+      firstUserMessage ??
+      firstCommandMessage ??
+      (sessionStartTitle
+        ? { text: sessionStartTitle.substring(0, 500), timestamp: new Date().toISOString() }
+        : null),
     messageCount,
     isOngoing: lastEndingIndex === -1 ? hasAnyOngoingActivity : hasActivityAfterLastEnding,
     gitBranch,

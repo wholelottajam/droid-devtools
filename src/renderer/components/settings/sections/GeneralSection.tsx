@@ -13,7 +13,7 @@ import { Check, Copy, FolderOpen, Laptop, Loader2, RotateCcw } from 'lucide-reac
 import { SettingRow, SettingsSectionHeader, SettingsSelect, SettingsToggle } from '../components';
 
 import type { SafeConfig } from '../hooks/useSettingsConfig';
-import type { ClaudeRootInfo, WslClaudeRootCandidate } from '@shared/types';
+import type { FactoryRootInfo, WslFactoryRootCandidate } from '@shared/types';
 import type { HttpServerStatus } from '@shared/types/api';
 import type { AppConfig } from '@shared/types/notifications';
 
@@ -49,11 +49,11 @@ export const GeneralSection = ({
   const fetchProjects = useStore((s) => s.fetchProjects);
   const fetchRepositoryGroups = useStore((s) => s.fetchRepositoryGroups);
 
-  const [claudeRootInfo, setClaudeRootInfo] = useState<ClaudeRootInfo | null>(null);
-  const [updatingClaudeRoot, setUpdatingClaudeRoot] = useState(false);
-  const [claudeRootError, setClaudeRootError] = useState<string | null>(null);
+  const [factoryRootInfo, setFactoryRootInfo] = useState<FactoryRootInfo | null>(null);
+  const [updatingFactoryRoot, setUpdatingFactoryRoot] = useState(false);
+  const [factoryRootError, setFactoryRootError] = useState<string | null>(null);
   const [findingWslRoots, setFindingWslRoots] = useState(false);
-  const [wslCandidates, setWslCandidates] = useState<WslClaudeRootCandidate[]>([]);
+  const [wslCandidates, setWslCandidates] = useState<WslFactoryRootCandidate[]>([]);
   const [showWslModal, setShowWslModal] = useState(false);
 
   // Fetch server status and Claude root info on mount
@@ -61,20 +61,20 @@ export const GeneralSection = ({
     void api.httpServer.getStatus().then(setServerStatus);
   }, []);
 
-  const loadClaudeRootInfo = useCallback(async () => {
+  const loadFactoryRootInfo = useCallback(async () => {
     try {
-      const info = await api.config.getClaudeRootInfo();
-      setClaudeRootInfo(info);
+      const info = await api.config.getFactoryRootInfo();
+      setFactoryRootInfo(info);
     } catch (error) {
-      setClaudeRootError(
-        error instanceof Error ? error.message : 'Failed to load local Claude root settings'
+      setFactoryRootError(
+        error instanceof Error ? error.message : 'Failed to load local Factory root settings'
       );
     }
   }, []);
 
   useEffect(() => {
-    void loadClaudeRootInfo();
-  }, [loadClaudeRootInfo]);
+    void loadFactoryRootInfo();
+  }, [loadFactoryRootInfo]);
 
   const handleServerToggle = useCallback(async (enabled: boolean) => {
     setServerLoading(true);
@@ -120,46 +120,46 @@ export const GeneralSection = ({
     });
   }, []);
 
-  const applyClaudeRootPath = useCallback(
-    async (claudeRootPath: string | null): Promise<void> => {
+  const applyFactoryRootPath = useCallback(
+    async (factoryRootPath: string | null): Promise<void> => {
       try {
-        setUpdatingClaudeRoot(true);
-        setClaudeRootError(null);
+        setUpdatingFactoryRoot(true);
+        setFactoryRootError(null);
 
-        await api.config.update('general', { claudeRootPath });
-        await loadClaudeRootInfo();
+        await api.config.update('general', { factoryRootPath });
+        await loadFactoryRootInfo();
 
         if (connectionMode === 'local') {
           resetWorkspaceForRootChange();
           await Promise.all([fetchProjects(), fetchRepositoryGroups()]);
         }
       } catch (error) {
-        setClaudeRootError(error instanceof Error ? error.message : 'Failed to update Claude root');
+        setFactoryRootError(error instanceof Error ? error.message : 'Failed to update Factory root');
       } finally {
-        setUpdatingClaudeRoot(false);
+        setUpdatingFactoryRoot(false);
       }
     },
     [
       connectionMode,
       fetchProjects,
       fetchRepositoryGroups,
-      loadClaudeRootInfo,
+      loadFactoryRootInfo,
       resetWorkspaceForRootChange,
     ]
   );
 
-  const handleSelectClaudeRootFolder = useCallback(async (): Promise<void> => {
-    setClaudeRootError(null);
+  const handleSelectFactoryRootFolder = useCallback(async (): Promise<void> => {
+    setFactoryRootError(null);
 
-    const selection = await api.config.selectClaudeRootFolder();
+    const selection = await api.config.selectFactoryRootFolder();
     if (!selection) {
       return;
     }
 
-    if (!selection.isClaudeDirName) {
+    if (!selection.isFactoryDirName) {
       const proceed = await confirm({
-        title: 'Selected folder is not .claude',
-        message: `This folder is named "${selection.path.split(/[\\/]/).pop() ?? selection.path}", not ".claude". Continue anyway?`,
+        title: 'Selected folder is not .factory',
+        message: `This folder is named "${selection.path.split(/[\\/]/).pop() ?? selection.path}", not ".factory". Continue anyway?`,
         confirmLabel: 'Use Folder',
       });
       if (!proceed) {
@@ -167,10 +167,10 @@ export const GeneralSection = ({
       }
     }
 
-    if (!selection.hasProjectsDir) {
+    if (!selection.hasSessionsDir) {
       const proceed = await confirm({
-        title: 'No projects directory found',
-        message: 'This folder does not contain a "projects" directory. Continue anyway?',
+        title: 'No sessions directory found',
+        message: 'This folder does not contain a "sessions" directory. Continue anyway?',
         confirmLabel: 'Use Folder',
       });
       if (!proceed) {
@@ -178,19 +178,19 @@ export const GeneralSection = ({
       }
     }
 
-    await applyClaudeRootPath(selection.path);
-  }, [applyClaudeRootPath]);
+    await applyFactoryRootPath(selection.path);
+  }, [applyFactoryRootPath]);
 
-  const handleResetClaudeRoot = useCallback(async (): Promise<void> => {
-    await applyClaudeRootPath(null);
-  }, [applyClaudeRootPath]);
+  const handleResetFactoryRoot = useCallback(async (): Promise<void> => {
+    await applyFactoryRootPath(null);
+  }, [applyFactoryRootPath]);
 
   const applyWslCandidate = useCallback(
-    async (candidate: WslClaudeRootCandidate): Promise<void> => {
-      if (!candidate.hasProjectsDir) {
+    async (candidate: WslFactoryRootCandidate): Promise<void> => {
+      if (!candidate.hasSessionsDir) {
         const proceed = await confirm({
-          title: 'WSL path missing projects directory',
-          message: `"${candidate.path}" does not contain a "projects" directory. Continue anyway?`,
+          title: 'WSL path missing sessions directory',
+          message: `"${candidate.path}" does not contain a "sessions" directory. Continue anyway?`,
           confirmLabel: 'Use Path',
         });
         if (!proceed) {
@@ -198,33 +198,33 @@ export const GeneralSection = ({
         }
       }
 
-      await applyClaudeRootPath(candidate.path);
+      await applyFactoryRootPath(candidate.path);
       setShowWslModal(false);
     },
-    [applyClaudeRootPath]
+    [applyFactoryRootPath]
   );
 
-  const handleUseWslForClaude = useCallback(async (): Promise<void> => {
+  const handleUseWslForFactory = useCallback(async (): Promise<void> => {
     try {
       setFindingWslRoots(true);
-      setClaudeRootError(null);
-      const candidates = await api.config.findWslClaudeRoots();
+      setFactoryRootError(null);
+      const candidates = await api.config.findWslFactoryRoots();
       setWslCandidates(candidates);
 
       if (candidates.length === 0) {
         const pickManually = await confirm({
-          title: 'No WSL Claude paths found',
+          title: 'No WSL Factory paths found',
           message:
-            'Could not find WSL distros with Claude data automatically. Select folder manually?',
+            'Could not find WSL distros with Factory data automatically. Select folder manually?',
           confirmLabel: 'Select Folder',
         });
         if (pickManually) {
-          await handleSelectClaudeRootFolder();
+          await handleSelectFactoryRootFolder();
         }
         return;
       }
 
-      const candidatesWithProjects = candidates.filter((candidate) => candidate.hasProjectsDir);
+      const candidatesWithProjects = candidates.filter((candidate) => candidate.hasSessionsDir);
       if (candidatesWithProjects.length === 1) {
         await applyWslCandidate(candidatesWithProjects[0]);
         return;
@@ -232,19 +232,19 @@ export const GeneralSection = ({
 
       setShowWslModal(true);
     } catch (error) {
-      setClaudeRootError(
-        error instanceof Error ? error.message : 'Failed to detect WSL Claude root paths'
+      setFactoryRootError(
+        error instanceof Error ? error.message : 'Failed to detect WSL Factory root paths'
       );
     } finally {
       setFindingWslRoots(false);
     }
-  }, [applyWslCandidate, handleSelectClaudeRootFolder]);
+  }, [applyWslCandidate, handleSelectFactoryRootFolder]);
 
-  const isCustomClaudeRoot = Boolean(claudeRootInfo?.customPath);
-  const resolvedClaudeRootPath = claudeRootInfo?.resolvedPath ?? '~/.claude';
-  const defaultClaudeRootPath = claudeRootInfo?.defaultPath ?? '~/.claude';
+  const isCustomFactoryRoot = Boolean(factoryRootInfo?.customPath);
+  const resolvedFactoryRootPath = factoryRootInfo?.resolvedPath ?? '~/.factory';
+  const defaultFactoryRootPath = factoryRootInfo?.defaultPath ?? '~/.factory';
   const isWindowsStyleDefaultPath =
-    /^[a-zA-Z]:\\/.test(defaultClaudeRootPath) || defaultClaudeRootPath.startsWith('\\\\');
+    /^[a-zA-Z]:\\/.test(defaultFactoryRootPath) || defaultFactoryRootPath.startsWith('\\\\');
 
   const isElectron = useMemo(() => isElectronMode(), []);
 
@@ -325,29 +325,29 @@ export const GeneralSection = ({
 
       {isElectron && (
         <>
-          <SettingsSectionHeader title="Local Claude Root" />
+          <SettingsSectionHeader title="Local Factory Root" />
           <p className="mb-4 text-sm" style={{ color: 'var(--color-text-muted)' }}>
-            Choose which local folder is treated as your Claude data root
+            Choose which local folder is treated as your Factory data root
           </p>
 
           <SettingRow
             label="Current Local Root"
-            description={isCustomClaudeRoot ? 'Using custom path' : 'Using auto-detected path'}
+            description={isCustomFactoryRoot ? 'Using custom path' : 'Using auto-detected path'}
           >
             <div className="max-w-96 text-right">
               <div className="truncate font-mono text-xs" style={{ color: 'var(--color-text)' }}>
-                {resolvedClaudeRootPath}
+                {resolvedFactoryRootPath}
               </div>
               <div className="text-[11px]" style={{ color: 'var(--color-text-muted)' }}>
-                Auto-detected: {defaultClaudeRootPath}
+                Auto-detected: {defaultFactoryRootPath}
               </div>
             </div>
           </SettingRow>
 
           <div className="flex items-center gap-3 py-2">
             <button
-              onClick={() => void handleSelectClaudeRootFolder()}
-              disabled={updatingClaudeRoot}
+              onClick={() => void handleSelectFactoryRootFolder()}
+              disabled={updatingFactoryRoot}
               className="rounded-md px-4 py-1.5 text-sm transition-colors disabled:opacity-50"
               style={{
                 backgroundColor: 'var(--color-surface-raised)',
@@ -355,7 +355,7 @@ export const GeneralSection = ({
               }}
             >
               <span className="flex items-center gap-2">
-                {updatingClaudeRoot ? (
+                {updatingFactoryRoot ? (
                   <Loader2 className="size-3 animate-spin" />
                 ) : (
                   <FolderOpen className="size-3" />
@@ -365,8 +365,8 @@ export const GeneralSection = ({
             </button>
 
             <button
-              onClick={() => void handleResetClaudeRoot()}
-              disabled={updatingClaudeRoot || !isCustomClaudeRoot}
+              onClick={() => void handleResetFactoryRoot()}
+              disabled={updatingFactoryRoot || !isCustomFactoryRoot}
               className="rounded-md px-4 py-1.5 text-sm transition-colors disabled:opacity-50"
               style={{
                 backgroundColor: 'var(--color-surface-raised)',
@@ -381,8 +381,8 @@ export const GeneralSection = ({
 
             {isWindowsStyleDefaultPath && (
               <button
-                onClick={() => void handleUseWslForClaude()}
-                disabled={updatingClaudeRoot || findingWslRoots}
+                onClick={() => void handleUseWslForFactory()}
+                disabled={updatingFactoryRoot || findingWslRoots}
                 className="rounded-md px-4 py-1.5 text-sm transition-colors disabled:opacity-50"
                 style={{
                   backgroundColor: 'var(--color-surface-raised)',
@@ -401,9 +401,9 @@ export const GeneralSection = ({
             )}
           </div>
 
-          {claudeRootError && (
+          {factoryRootError && (
             <div className="rounded-md border border-red-500/20 bg-red-500/10 px-4 py-3">
-              <p className="text-sm text-red-400">{claudeRootError}</p>
+              <p className="text-sm text-red-400">{factoryRootError}</p>
             </div>
           )}
 
@@ -424,10 +424,10 @@ export const GeneralSection = ({
                 }}
               >
                 <h3 className="text-sm font-semibold" style={{ color: 'var(--color-text)' }}>
-                  Select WSL Claude Root
+                  Select WSL Factory Root
                 </h3>
                 <p className="mt-1 text-xs" style={{ color: 'var(--color-text-muted)' }}>
-                  Detected WSL distributions and Claude root candidates
+                  Detected WSL distributions and Factory root candidates
                 </p>
 
                 <div className="mt-4 space-y-2">
@@ -447,9 +447,9 @@ export const GeneralSection = ({
                         >
                           {candidate.path}
                         </p>
-                        {!candidate.hasProjectsDir && (
+                        {!candidate.hasSessionsDir && (
                           <p className="text-[11px] text-amber-400">
-                            No projects directory detected
+                            No sessions directory detected
                           </p>
                         )}
                       </div>
@@ -481,7 +481,7 @@ export const GeneralSection = ({
                   <button
                     onClick={() => {
                       setShowWslModal(false);
-                      void handleSelectClaudeRootFolder();
+                      void handleSelectFactoryRootFolder();
                     }}
                     className="rounded-md px-3 py-1.5 text-xs transition-colors"
                     style={{

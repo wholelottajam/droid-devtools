@@ -42,23 +42,23 @@ describe('configValidation', () => {
     }
   });
 
-  it('accepts absolute general.claudeRootPath updates', () => {
+  it('accepts absolute general.factoryRootPath updates', () => {
     const result = validateConfigUpdatePayload('general', {
-      claudeRootPath: '/Users/test/.claude',
+      factoryRootPath: '/Users/test/.factory',
     });
 
     expect(result.valid).toBe(true);
     if (result.valid) {
       expect(result.section).toBe('general');
       expect(result.data).toEqual({
-        claudeRootPath: path.resolve('/Users/test/.claude'),
+        factoryRootPath: path.resolve('/Users/test/.factory'),
       });
     }
   });
 
-  it('rejects relative general.claudeRootPath updates', () => {
+  it('rejects relative general.factoryRootPath updates', () => {
     const result = validateConfigUpdatePayload('general', {
-      claudeRootPath: '.claude',
+      factoryRootPath: '.factory',
     });
 
     expect(result.valid).toBe(false);

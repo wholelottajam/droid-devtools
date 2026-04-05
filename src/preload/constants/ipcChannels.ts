@@ -50,14 +50,14 @@ export const CONFIG_TEST_TRIGGER = 'config:testTrigger';
 /** Select folders dialog */
 export const CONFIG_SELECT_FOLDERS = 'config:selectFolders';
 
-/** Select local Claude root folder */
-export const CONFIG_SELECT_CLAUDE_ROOT_FOLDER = 'config:selectClaudeRootFolder';
+/** Select local Factory root folder */
+export const CONFIG_SELECT_FACTORY_ROOT_FOLDER = 'config:selectFactoryRootFolder';
 
-/** Get effective/default Claude root folder info */
-export const CONFIG_GET_CLAUDE_ROOT_INFO = 'config:getClaudeRootInfo';
+/** Get effective/default Factory root folder info */
+export const CONFIG_GET_FACTORY_ROOT_INFO = 'config:getFactoryRootInfo';
 
-/** Find WSL Claude root candidates (Windows only) */
-export const CONFIG_FIND_WSL_CLAUDE_ROOTS = 'config:findWslClaudeRoots';
+/** Find WSL Factory root candidates (Windows only) */
+export const CONFIG_FIND_WSL_FACTORY_ROOTS = 'config:findWslFactoryRoots';
 
 /** Open config file in external editor */
 export const CONFIG_OPEN_IN_EDITOR = 'config:openInEditor';

@@ -37,7 +37,7 @@ module.exports = {
         },
         // Theme-aware colors using CSS variables
         // These aliases enable all existing components to automatically support light/dark mode
-        'claude-dark': {
+        'droid-dark': {
           bg: 'var(--color-surface)',
           surface: 'var(--color-surface-raised)',
           border: 'var(--color-border)',

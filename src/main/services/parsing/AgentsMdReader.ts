@@ -1,14 +1,14 @@
 /**
- * ClaudeMdReader service - Reads CLAUDE.md files and calculates token counts.
+ * AgentsMdReader service - Reads AGENTS.md files and calculates token counts.
  *
  * Responsibilities:
- * - Read CLAUDE.md files from various locations
+ * - Read AGENTS.md files from various locations
  * - Calculate character counts and estimate token counts
  * - Handle file not found gracefully
  * - Support tilde (~) expansion to home directory
  */
 
-import { encodePath, getClaudeBasePath } from '@main/utils/pathDecoder';
+import { encodePath, getFactoryBasePath } from '@main/utils/pathDecoder';
 import { countTokens } from '@main/utils/tokenizer';
 import { createLogger } from '@shared/utils/logger';
 import { app } from 'electron';
@@ -18,7 +18,7 @@ import { LocalFileSystemProvider } from '../infrastructure/LocalFileSystemProvid
 
 import type { FileSystemProvider } from '../infrastructure/FileSystemProvider';
 
-const logger = createLogger('Service:ClaudeMdReader');
+const logger = createLogger('Service:AgentsMdReader');
 
 const defaultProvider = new LocalFileSystemProvider();
 
@@ -26,15 +26,15 @@ const defaultProvider = new LocalFileSystemProvider();
 // Types
 // ===========================================================================
 
-export interface ClaudeMdFileInfo {
+export interface AgentsMdFileInfo {
   path: string;
   exists: boolean;
   charCount: number;
   estimatedTokens: number; // charCount / 4
 }
 
-export interface ClaudeMdReadResult {
-  files: Map<string, ClaudeMdFileInfo>;
+export interface AgentsMdReadResult {
+  files: Map<string, AgentsMdFileInfo>;
 }
 
 // ===========================================================================
@@ -59,15 +59,15 @@ function expandTilde(filePath: string): string {
 // ===========================================================================
 
 /**
- * Reads a single CLAUDE.md file and returns its info.
- * @param filePath - Path to the CLAUDE.md file (supports ~ expansion)
+ * Reads a single AGENTS.md file and returns its info.
+ * @param filePath - Path to the AGENTS.md file (supports ~ expansion)
  * @param fsProvider - Optional filesystem provider (defaults to local)
- * @returns ClaudeMdFileInfo with file details
+ * @returns AgentsMdFileInfo with file details
  */
-async function readClaudeMdFile(
+async function readAgentsMdFile(
   filePath: string,
   fsProvider: FileSystemProvider = defaultProvider
-): Promise<ClaudeMdFileInfo> {
+): Promise<AgentsMdFileInfo> {
   const expandedPath = expandTilde(filePath);
 
   try {
@@ -92,7 +92,7 @@ async function readClaudeMdFile(
     };
   } catch (error) {
     // Handle permission denied, file not readable, etc.
-    logger.error(`Error reading CLAUDE.md file at ${expandedPath}:`, error);
+    logger.error(`Error reading AGENTS.md file at ${expandedPath}:`, error);
     return {
       path: expandedPath,
       exists: false,
@@ -107,12 +107,12 @@ async function readClaudeMdFile(
  * Used for project rules directory.
  * @param dirPath - Path to the directory (supports ~ expansion)
  * @param fsProvider - Optional filesystem provider (defaults to local)
- * @returns ClaudeMdFileInfo with combined stats from all .md files
+ * @returns AgentsMdFileInfo with combined stats from all .md files
  */
 async function readDirectoryMdFiles(
   dirPath: string,
   fsProvider: FileSystemProvider = defaultProvider
-): Promise<ClaudeMdFileInfo> {
+): Promise<AgentsMdFileInfo> {
   const expandedPath = expandTilde(dirPath);
 
   try {
@@ -209,30 +209,30 @@ async function collectMdFiles(
 }
 
 /**
- * Returns the platform-specific enterprise CLAUDE.md path.
+ * Returns the platform-specific enterprise AGENTS.md path.
  */
 function getEnterprisePath(): string {
   switch (process.platform) {
     case 'win32':
-      return 'C:\\Program Files\\ClaudeCode\\CLAUDE.md';
+      return 'C:\\Program Files\\FactoryCLI\\AGENTS.md';
     case 'darwin':
-      return '/Library/Application Support/ClaudeCode/CLAUDE.md';
+      return '/Library/Application Support/FactoryCLI/AGENTS.md';
     default:
-      return '/etc/claude-code/CLAUDE.md';
+      return '/etc/factory-cli/AGENTS.md';
   }
 }
 
 /**
  * Reads auto memory MEMORY.md file for a project.
- * Only reads the first 200 lines, matching Claude Code behavior.
+ * Only reads the first 200 lines.
  */
 async function readAutoMemoryFile(
   projectRoot: string,
   fsProvider: FileSystemProvider = defaultProvider
-): Promise<ClaudeMdFileInfo> {
+): Promise<AgentsMdFileInfo> {
   const expandedRoot = expandTilde(projectRoot);
   const encoded = encodePath(expandedRoot);
-  const memoryPath = path.join(getClaudeBasePath(), 'projects', encoded, 'memory', 'MEMORY.md');
+  const memoryPath = path.join(getFactoryBasePath(), 'sessions', encoded, 'memory', 'MEMORY.md');
 
   try {
     if (!(await fsProvider.exists(memoryPath))) {
@@ -240,7 +240,7 @@ async function readAutoMemoryFile(
     }
 
     const content = await fsProvider.readFile(memoryPath);
-    // Only first 200 lines, matching Claude Code behavior
+    // Only first 200 lines
     const lines = content.split('\n');
     const truncated = lines.slice(0, 200).join('\n');
     const charCount = truncated.length;
@@ -254,64 +254,64 @@ async function readAutoMemoryFile(
 }
 
 /**
- * Reads all potential CLAUDE.md locations for a project.
+ * Reads all potential AGENTS.md locations for a project.
  * @param projectRoot - The root directory of the project
  * @param fsProvider - Optional filesystem provider (defaults to local)
- * @returns ClaudeMdReadResult with Map of path -> ClaudeMdFileInfo
+ * @returns AgentsMdReadResult with Map of path -> AgentsMdFileInfo
  */
-export async function readAllClaudeMdFiles(
+export async function readAllAgentsMdFiles(
   projectRoot: string,
   fsProvider: FileSystemProvider = defaultProvider
-): Promise<ClaudeMdReadResult> {
-  const files = new Map<string, ClaudeMdFileInfo>();
+): Promise<AgentsMdReadResult> {
+  const files = new Map<string, AgentsMdFileInfo>();
   const expandedProjectRoot = expandTilde(projectRoot);
 
-  // 1. Enterprise CLAUDE.md (platform-specific path)
+  // 1. Enterprise AGENTS.md (platform-specific path)
   const enterprisePath = getEnterprisePath();
-  files.set('enterprise', await readClaudeMdFile(enterprisePath, fsProvider));
+  files.set('enterprise', await readAgentsMdFile(enterprisePath, fsProvider));
 
-  // 2. User memory: <Claude root>/CLAUDE.md
-  const userMemoryPath = path.join(getClaudeBasePath(), 'CLAUDE.md');
-  files.set('user', await readClaudeMdFile(userMemoryPath, fsProvider));
+  // 2. User memory: <Factory root>/AGENTS.md
+  const userMemoryPath = path.join(getFactoryBasePath(), 'AGENTS.md');
+  files.set('user', await readAgentsMdFile(userMemoryPath, fsProvider));
 
-  // 3. Project memory: ${projectRoot}/CLAUDE.md
-  const projectMemoryPath = path.join(expandedProjectRoot, 'CLAUDE.md');
-  files.set('project', await readClaudeMdFile(projectMemoryPath, fsProvider));
+  // 3. Project memory: ${projectRoot}/AGENTS.md
+  const projectMemoryPath = path.join(expandedProjectRoot, 'AGENTS.md');
+  files.set('project', await readAgentsMdFile(projectMemoryPath, fsProvider));
 
-  // 4. Project memory alt: ${projectRoot}/.claude/CLAUDE.md
-  const projectMemoryAltPath = path.join(expandedProjectRoot, '.claude', 'CLAUDE.md');
-  files.set('project-alt', await readClaudeMdFile(projectMemoryAltPath, fsProvider));
+  // 4. Project memory alt: ${projectRoot}/.factory/AGENTS.md
+  const projectMemoryAltPath = path.join(expandedProjectRoot, '.factory', 'AGENTS.md');
+  files.set('project-alt', await readAgentsMdFile(projectMemoryAltPath, fsProvider));
 
-  // 5. Project rules: ${projectRoot}/.claude/rules/*.md
-  const projectRulesPath = path.join(expandedProjectRoot, '.claude', 'rules');
+  // 5. Project rules: ${projectRoot}/.factory/rules/*.md
+  const projectRulesPath = path.join(expandedProjectRoot, '.factory', 'rules');
   files.set('project-rules', await readDirectoryMdFiles(projectRulesPath, fsProvider));
 
-  // 6. Project local: ${projectRoot}/CLAUDE.local.md
-  const projectLocalPath = path.join(expandedProjectRoot, 'CLAUDE.local.md');
-  files.set('project-local', await readClaudeMdFile(projectLocalPath, fsProvider));
+  // 6. Project local: ${projectRoot}/AGENTS.local.md
+  const projectLocalPath = path.join(expandedProjectRoot, 'AGENTS.local.md');
+  files.set('project-local', await readAgentsMdFile(projectLocalPath, fsProvider));
 
-  // 7. User rules: <Claude root>/rules/**/*.md
-  const userRulesPath = path.join(getClaudeBasePath(), 'rules');
+  // 7. User rules: <Factory root>/rules/**/*.md
+  const userRulesPath = path.join(getFactoryBasePath(), 'rules');
   files.set('user-rules', await readDirectoryMdFiles(userRulesPath, fsProvider));
 
-  // 8. Auto memory: ~/.claude/projects/<encoded>/memory/MEMORY.md
+  // 8. Auto memory: ~/.factory/sessions/<encoded>/memory/MEMORY.md
   files.set('auto-memory', await readAutoMemoryFile(projectRoot, fsProvider));
 
   return { files };
 }
 
 /**
- * Reads a specific directory's CLAUDE.md file.
- * Used for directory-specific CLAUDE.md detected from file reads.
+ * Reads a specific directory's AGENTS.md file.
+ * Used for directory-specific AGENTS.md detected from file reads.
  * @param dirPath - Path to the directory (supports ~ expansion)
  * @param fsProvider - Optional filesystem provider (defaults to local)
- * @returns ClaudeMdFileInfo for the CLAUDE.md file in that directory
+ * @returns AgentsMdFileInfo for the AGENTS.md file in that directory
  */
-export async function readDirectoryClaudeMd(
+export async function readDirectoryAgentsMd(
   dirPath: string,
   fsProvider: FileSystemProvider = defaultProvider
-): Promise<ClaudeMdFileInfo> {
+): Promise<AgentsMdFileInfo> {
   const expandedDirPath = expandTilde(dirPath);
-  const claudeMdPath = path.join(expandedDirPath, 'CLAUDE.md');
-  return readClaudeMdFile(claudeMdPath, fsProvider);
+  const agentsMdPath = path.join(expandedDirPath, 'AGENTS.md');
+  return readAgentsMdFile(agentsMdPath, fsProvider);
 }

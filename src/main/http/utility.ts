@@ -3,8 +3,8 @@
  *
  * Routes:
  * - GET /api/version - App version
- * - POST /api/read-claude-md - Read CLAUDE.md files
- * - POST /api/read-directory-claude-md - Read directory CLAUDE.md
+ * - POST /api/read-agents-md - Read CLAUDE.md files
+ * - POST /api/read-directory-agents-md - Read directory CLAUDE.md
  * - POST /api/read-mentioned-file - Read mentioned file
  * - POST /api/open-path - No-op in browser
  * - POST /api/open-external - No-op in browser
@@ -14,7 +14,12 @@ import { createLogger } from '@shared/utils/logger';
 import * as fs from 'fs';
 import * as path from 'path';
 
-import { type ClaudeMdFileInfo, readAgentConfigs, readAllClaudeMdFiles, readDirectoryClaudeMd } from '../services';
+import {
+  type AgentsMdFileInfo,
+  readAgentConfigs,
+  readAllAgentsMdFiles,
+  readDirectoryAgentsMd,
+} from '../services';
 import { validateFilePath } from '../utils/pathValidation';
 import { countTokens } from '../utils/tokenizer';
 
@@ -36,29 +41,29 @@ export function registerUtilityRoutes(app: FastifyInstance): void {
   });
 
   // Read CLAUDE.md files
-  app.post<{ Body: { projectRoot: string } }>('/api/read-claude-md', async (request) => {
+  app.post<{ Body: { projectRoot: string } }>('/api/read-agents-md', async (request) => {
     try {
       const { projectRoot } = request.body;
-      const result = await readAllClaudeMdFiles(projectRoot);
-      const files: Record<string, ClaudeMdFileInfo> = {};
+      const result = await readAllAgentsMdFiles(projectRoot);
+      const files: Record<string, AgentsMdFileInfo> = {};
       result.files.forEach((info, key) => {
         files[key] = info;
       });
       return files;
     } catch (error) {
-      logger.error('Error in POST /api/read-claude-md:', error);
+      logger.error('Error in POST /api/read-agents-md:', error);
       return {};
     }
   });
 
   // Read directory CLAUDE.md
-  app.post<{ Body: { dirPath: string } }>('/api/read-directory-claude-md', async (request) => {
+  app.post<{ Body: { dirPath: string } }>('/api/read-directory-agents-md', async (request) => {
     try {
       const { dirPath } = request.body;
-      const info = await readDirectoryClaudeMd(dirPath);
+      const info = await readDirectoryAgentsMd(dirPath);
       return info;
     } catch (error) {
-      logger.error('Error in POST /api/read-directory-claude-md:', error);
+      logger.error('Error in POST /api/read-directory-agents-md:', error);
       return {
         path: request.body.dirPath,
         exists: false,

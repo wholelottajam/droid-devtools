@@ -2,7 +2,7 @@
  * Type definitions for SessionContextPanel components.
  */
 
-import type { ClaudeMdSource } from '@renderer/types/claudeMd';
+import type { AgentsMdSource } from '@renderer/types/agentsMd';
 import type { ContextInjection, ContextPhaseInfo } from '@renderer/types/contextInjection';
 
 // =============================================================================
@@ -37,7 +37,7 @@ export interface SessionContextPanelProps {
 // =============================================================================
 
 /** Section type constants */
-export const SECTION_CLAUDE_MD = 'claude-md' as const;
+export const SECTION_AGENTS_MD = 'claude-md' as const;
 export const SECTION_MENTIONED_FILES = 'mentioned-files' as const;
 export const SECTION_TOOL_OUTPUTS = 'tool-outputs' as const;
 export const SECTION_THINKING_TEXT = 'thinking-text' as const;
@@ -46,7 +46,7 @@ export const SECTION_USER_MESSAGES = 'user-messages' as const;
 
 /** Section identifiers for collapsible panels */
 export type SectionType =
-  | typeof SECTION_CLAUDE_MD
+  | typeof SECTION_AGENTS_MD
   | typeof SECTION_MENTIONED_FILES
   | typeof SECTION_TOOL_OUTPUTS
   | typeof SECTION_THINKING_TEXT
@@ -57,18 +57,18 @@ export type SectionType =
 export type ContextViewMode = 'category' | 'ranked';
 
 // =============================================================================
-// CLAUDE.md Group Types
+// AGENTS.md Group Types
 // =============================================================================
 
-/** Group category for CLAUDE.md files */
-export type ClaudeMdGroupCategory = 'global' | 'project' | 'directory';
+/** Group category for AGENTS.md files */
+export type AgentsMdGroupCategory = 'global' | 'project' | 'directory';
 
-interface ClaudeMdGroupConfig {
+interface AgentsMdGroupConfig {
   label: string;
-  sources: ClaudeMdSource[];
+  sources: AgentsMdSource[];
 }
 
-export const CLAUDE_MD_GROUP_CONFIG: Record<ClaudeMdGroupCategory, ClaudeMdGroupConfig> = {
+export const AGENTS_MD_GROUP_CONFIG: Record<AgentsMdGroupCategory, AgentsMdGroupConfig> = {
   global: {
     label: 'Global',
     sources: ['enterprise', 'user-memory', 'user-rules', 'auto-memory'],
@@ -83,4 +83,4 @@ export const CLAUDE_MD_GROUP_CONFIG: Record<ClaudeMdGroupCategory, ClaudeMdGroup
   },
 };
 
-export const CLAUDE_MD_GROUP_ORDER: ClaudeMdGroupCategory[] = ['global', 'project', 'directory'];
+export const AGENTS_MD_GROUP_ORDER: AgentsMdGroupCategory[] = ['global', 'project', 'directory'];

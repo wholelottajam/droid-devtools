@@ -260,8 +260,8 @@ export interface AppConfig {
     theme: 'dark' | 'light' | 'system';
     /** Default tab to show on app launch */
     defaultTab: 'dashboard' | 'last-session';
-    /** Optional custom Claude root folder (auto-detected when null) */
-    claudeRootPath: string | null;
+    /** Optional custom Factory root folder (auto-detected when null) */
+    factoryRootPath: string | null;
     /** Whether to auto-expand AI response groups when opening a transcript or receiving new messages */
     autoExpandAIGroups: boolean;
     /** Whether to use the native OS title bar instead of the custom one (Linux/Windows) */

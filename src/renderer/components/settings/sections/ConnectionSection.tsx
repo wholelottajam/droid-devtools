@@ -19,7 +19,7 @@ import { SettingsSectionHeader } from '../components/SettingsSectionHeader';
 import { SettingsSelect } from '../components/SettingsSelect';
 
 import type {
-  ClaudeRootInfo,
+  FactoryRootInfo,
   SshAuthMethod,
   SshConfigHostEntry,
   SshConnectionConfig,
@@ -63,7 +63,7 @@ export const ConnectionSection = (): React.JSX.Element => {
   // Saved profiles
   const [savedProfiles, setSavedProfiles] = useState<SshConnectionProfile[]>([]);
   const [selectedProfileId, setSelectedProfileId] = useState<string | null>(null);
-  const [claudeRootInfo, setClaudeRootInfo] = useState<ClaudeRootInfo | null>(null);
+  const [factoryRootInfo, setFactoryRootInfo] = useState<FactoryRootInfo | null>(null);
 
   const loadProfiles = useCallback(async () => {
     try {
@@ -75,10 +75,10 @@ export const ConnectionSection = (): React.JSX.Element => {
     }
   }, []);
 
-  const loadClaudeRootInfo = useCallback(async () => {
+  const loadFactoryRootInfo = useCallback(async () => {
     try {
-      const info = await api.config.getClaudeRootInfo();
-      setClaudeRootInfo(info);
+      const info = await api.config.getFactoryRootInfo();
+      setFactoryRootInfo(info);
     } catch {
       // ignore
     }
@@ -89,8 +89,8 @@ export const ConnectionSection = (): React.JSX.Element => {
     void fetchSshConfigHosts();
     void loadLastConnection();
     void loadProfiles();
-    void loadClaudeRootInfo();
-  }, [fetchSshConfigHosts, loadLastConnection, loadProfiles, loadClaudeRootInfo]);
+    void loadFactoryRootInfo();
+  }, [fetchSshConfigHosts, loadLastConnection, loadProfiles, loadFactoryRootInfo]);
 
   // Pre-fill form from saved connection config when it arrives (one-time on mount).
   // setState in effect is intentional: lastSshConfig loads async from IPC, so we can't
@@ -186,7 +186,7 @@ export const ConnectionSection = (): React.JSX.Element => {
 
   const isConnecting = connectionState === 'connecting';
   const isConnected = connectionState === 'connected';
-  const resolvedClaudeRootPath = claudeRootInfo?.resolvedPath ?? '~/.claude';
+  const resolvedFactoryRootPath = factoryRootInfo?.resolvedPath ?? '~/.factory';
 
   const inputClass = 'w-full rounded-md border px-3 py-1.5 text-sm focus:outline-none focus:ring-1';
   const inputStyle = {
@@ -247,7 +247,7 @@ export const ConnectionSection = (): React.JSX.Element => {
             style={{ color: 'var(--color-text-secondary)' }}
           >
             <Monitor className="size-4" />
-            <span>Local ({resolvedClaudeRootPath})</span>
+            <span>Local ({resolvedFactoryRootPath})</span>
           </div>
         </SettingRow>
       )}

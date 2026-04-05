@@ -68,9 +68,9 @@ export interface MockElectronAPI {
     getTriggers: ReturnType<typeof vi.fn>;
     testTrigger: ReturnType<typeof vi.fn>;
     selectFolders: ReturnType<typeof vi.fn>;
-    selectClaudeRootFolder: ReturnType<typeof vi.fn>;
-    getClaudeRootInfo: ReturnType<typeof vi.fn>;
-    findWslClaudeRoots: ReturnType<typeof vi.fn>;
+    selectFactoryRootFolder: ReturnType<typeof vi.fn>;
+    getFactoryRootInfo: ReturnType<typeof vi.fn>;
+    findWslFactoryRoots: ReturnType<typeof vi.fn>;
     openInEditor: ReturnType<typeof vi.fn>;
     pinSession: ReturnType<typeof vi.fn>;
     unpinSession: ReturnType<typeof vi.fn>;
@@ -142,7 +142,7 @@ export function createMockElectronAPI(): MockElectronAPI {
           showDockIcon: true,
           theme: 'dark',
           defaultTab: 'dashboard',
-          claudeRootPath: null,
+          factoryRootPath: null,
         },
         display: {
           showTimestamps: true,
@@ -166,13 +166,13 @@ export function createMockElectronAPI(): MockElectronAPI {
       getTriggers: vi.fn().mockResolvedValue([]),
       testTrigger: vi.fn(),
       selectFolders: vi.fn().mockResolvedValue([]),
-      selectClaudeRootFolder: vi.fn().mockResolvedValue(null),
-      getClaudeRootInfo: vi.fn().mockResolvedValue({
-        defaultPath: '~/.claude',
-        resolvedPath: '~/.claude',
+      selectFactoryRootFolder: vi.fn().mockResolvedValue(null),
+      getFactoryRootInfo: vi.fn().mockResolvedValue({
+        defaultPath: '~/.factory',
+        resolvedPath: '~/.factory',
         customPath: null,
       }),
-      findWslClaudeRoots: vi.fn().mockResolvedValue([]),
+      findWslFactoryRoots: vi.fn().mockResolvedValue([]),
       openInEditor: vi.fn(),
       pinSession: vi.fn(),
       unpinSession: vi.fn(),

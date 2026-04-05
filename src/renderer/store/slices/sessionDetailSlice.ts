@@ -5,7 +5,7 @@
 import { api } from '@renderer/api';
 import { asEnhancedChunkArray } from '@renderer/types/data';
 import { findTabBySession, truncateLabel } from '@renderer/types/tabs';
-import { processSessionClaudeMd } from '@renderer/utils/claudeMdTracker';
+import { processSessionAgentsMd } from '@renderer/utils/agentsMdTracker';
 import { processSessionContextWithPhases } from '@renderer/utils/contextTracker';
 import {
   extractFileReferences,
@@ -37,13 +37,13 @@ let agentConfigsCachedForProject = '';
 import { getAllTabs } from '../utils/paneHelpers';
 
 import type { AppState } from '../types';
-import type { ClaudeMdStats } from '@renderer/types/claudeMd';
+import type { AgentsMdStats } from '@renderer/types/agentsMd';
 import type {
   ContextPhaseInfo,
   ContextStats,
   MentionedFileInfo,
 } from '@renderer/types/contextInjection';
-import type { ClaudeMdFileInfo, SessionDetail } from '@renderer/types/data';
+import type { AgentsMdFileInfo, SessionDetail } from '@renderer/types/data';
 import type { AIGroup, SessionConversation } from '@renderer/types/groups';
 import type { AgentConfig } from '@shared/types/api';
 import type { StateCreator } from 'zustand';
@@ -58,7 +58,7 @@ export interface TabSessionData {
   conversationLoading: boolean;
   sessionDetailLoading: boolean;
   sessionDetailError: string | null;
-  sessionClaudeMdStats: Map<string, ClaudeMdStats> | null;
+  sessionClaudeMdStats: Map<string, AgentsMdStats> | null;
   sessionContextStats: Map<string, ContextStats> | null;
   sessionPhaseInfo: ContextPhaseInfo | null;
   visibleAIGroupId: string | null;
@@ -95,7 +95,7 @@ export interface SessionDetailSlice {
   conversationLoading: boolean;
 
   // CLAUDE.md stats (injection tracking per AI group)
-  sessionClaudeMdStats: Map<string, ClaudeMdStats> | null;
+  sessionClaudeMdStats: Map<string, AgentsMdStats> | null;
   // Unified context stats (CLAUDE.md + mentioned files + tool outputs)
   sessionContextStats: Map<string, ContextStats> | null;
   // Context phase info (compaction boundaries)
@@ -304,22 +304,22 @@ export const createSessionDetailSlice: StateCreator<AppState, [], [], SessionDet
         void (async () => {
           try {
             // Fetch real CLAUDE.md token data
-            let claudeMdTokenData: Record<string, ClaudeMdFileInfo> = {};
+            let claudeMdTokenData: Record<string, AgentsMdFileInfo> = {};
             try {
-              claudeMdTokenData = await api.readClaudeMdFiles(projectRoot);
+              claudeMdTokenData = await api.readAgentsMdFiles(projectRoot);
               if (requestGeneration !== sessionDetailFetchGeneration) return;
             } catch (err) {
               logger.error('Failed to read CLAUDE.md files:', err);
             }
 
-            const claudeMdStats = processSessionClaudeMd(
+            const claudeMdStats = processSessionAgentsMd(
               conversation.items,
               projectRoot,
               claudeMdTokenData
             );
 
             // Fetch real tokens for directory CLAUDE.md files
-            const directoryTokenData: Record<string, ClaudeMdFileInfo> = {};
+            const directoryTokenData: Record<string, AgentsMdFileInfo> = {};
 
             if (claudeMdStats && claudeMdStats.size > 0) {
               const directoryPaths = new Set<string>();
@@ -340,7 +340,7 @@ export const createSessionDetailSlice: StateCreator<AppState, [], [], SessionDet
                   async (fullPath) => {
                     try {
                       const dirPath = fullPath.replace(/[\\/]CLAUDE\.md$/, '');
-                      const fileInfo = await api.readDirectoryClaudeMd(dirPath);
+                      const fileInfo = await api.readDirectoryAgentsMd(dirPath);
                       return { fullPath, fileInfo, error: false };
                     } catch (err) {
                       logger.error('Failed to read directory CLAUDE.md:', fullPath, err);
