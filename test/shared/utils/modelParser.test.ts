@@ -16,9 +16,13 @@ describe('modelParser', () => {
       expect(parseModelString('<synthetic>')).toBeNull();
     });
 
-    it('should return null for non-claude model', () => {
-      expect(parseModelString('gpt-4')).toBeNull();
+    it('should return null for unknown provider prefix', () => {
+      expect(parseModelString('llama-3-70b')).toBeNull();
     });
+
+    // -------------------------------------------------------------------------
+    // Anthropic models
+    // -------------------------------------------------------------------------
 
     // New format tests: claude-{family}-{major}-{minor}-{date}
     it('should parse new format: claude-sonnet-4-5-20250929', () => {
@@ -28,6 +32,7 @@ describe('modelParser', () => {
         family: 'sonnet',
         majorVersion: 4,
         minorVersion: 5,
+        provider: 'anthropic',
       });
     });
 
@@ -38,6 +43,7 @@ describe('modelParser', () => {
         family: 'opus',
         majorVersion: 5,
         minorVersion: null,
+        provider: 'anthropic',
       });
     });
 
@@ -48,6 +54,7 @@ describe('modelParser', () => {
         family: 'opus',
         majorVersion: 4,
         minorVersion: 6,
+        provider: 'anthropic',
       });
     });
 
@@ -58,6 +65,7 @@ describe('modelParser', () => {
         family: 'haiku',
         majorVersion: 3,
         minorVersion: null,
+        provider: 'anthropic',
       });
     });
 
@@ -69,6 +77,7 @@ describe('modelParser', () => {
         family: 'opus',
         majorVersion: 3,
         minorVersion: null,
+        provider: 'anthropic',
       });
     });
 
@@ -79,6 +88,7 @@ describe('modelParser', () => {
         family: 'sonnet',
         majorVersion: 3,
         minorVersion: 5,
+        provider: 'anthropic',
       });
     });
 
@@ -89,6 +99,7 @@ describe('modelParser', () => {
         family: 'sonnet',
         majorVersion: 4,
         minorVersion: 5,
+        provider: 'anthropic',
       });
     });
 
@@ -99,6 +110,7 @@ describe('modelParser', () => {
         family: 'sonnet',
         majorVersion: 4,
         minorVersion: 5,
+        provider: 'anthropic',
       });
     });
 
@@ -106,14 +118,60 @@ describe('modelParser', () => {
       expect(parseModelString('claude-sonnet')).toBeNull();
     });
 
-    it('should handle unknown model families', () => {
+    it('should handle unknown anthropic model families', () => {
       const result = parseModelString('claude-newmodel-4-5-20250929');
       expect(result).toEqual({
         name: 'newmodel4.5',
         family: 'newmodel',
         majorVersion: 4,
         minorVersion: 5,
+        provider: 'anthropic',
       });
+    });
+
+    // -------------------------------------------------------------------------
+    // OpenAI models
+    // -------------------------------------------------------------------------
+
+    it('should parse gpt-5.3-codex', () => {
+      const result = parseModelString('gpt-5.3-codex');
+      expect(result).toEqual({
+        name: 'gpt-5.3-codex',
+        family: 'gpt-5-codex',
+        majorVersion: 5,
+        minorVersion: 3,
+        provider: 'openai',
+      });
+    });
+
+    it('should parse gpt-5.4', () => {
+      const result = parseModelString('gpt-5.4');
+      expect(result).toEqual({
+        name: 'gpt-5.4',
+        family: 'gpt-5',
+        majorVersion: 5,
+        minorVersion: 4,
+        provider: 'openai',
+      });
+    });
+
+    it('should parse gpt-4 (no minor version)', () => {
+      const result = parseModelString('gpt-4');
+      expect(result).toEqual({
+        name: 'gpt-4',
+        family: 'gpt-4',
+        majorVersion: 4,
+        minorVersion: null,
+        provider: 'openai',
+      });
+    });
+
+    it('should handle uppercase GPT model', () => {
+      const result = parseModelString('GPT-5.3-CODEX');
+      expect(result).not.toBeNull();
+      expect(result?.provider).toBe('openai');
+      expect(result?.majorVersion).toBe(5);
+      expect(result?.minorVersion).toBe(3);
     });
   });
 
@@ -128,6 +186,12 @@ describe('modelParser', () => {
 
     it('should return color for haiku', () => {
       expect(getModelColorClass('haiku')).toBe('text-zinc-400');
+    });
+
+    it('should return green for gpt families', () => {
+      expect(getModelColorClass('gpt-5')).toBe('text-emerald-400');
+      expect(getModelColorClass('gpt-5-codex')).toBe('text-emerald-400');
+      expect(getModelColorClass('gpt-4')).toBe('text-emerald-400');
     });
 
     it('should return default color for unknown family', () => {

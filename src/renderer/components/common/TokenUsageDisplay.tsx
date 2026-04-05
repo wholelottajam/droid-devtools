@@ -11,7 +11,8 @@ import React, { useEffect, useRef, useState } from 'react';
 import { createPortal } from 'react-dom';
 
 import { COLOR_TEXT_MUTED, COLOR_TEXT_SECONDARY } from '@renderer/constants/cssVariables';
-import { getModelColorClass } from '@shared/utils/modelParser';
+import { computeWeightedTokens } from '@shared/constants/modelWeights';
+import { getModelColorClass, getProviderLabel } from '@shared/utils/modelParser';
 import {
   formatTokensCompact as formatTokens,
   formatTokensDetailed,
@@ -20,7 +21,7 @@ import { ChevronRight, Info } from 'lucide-react';
 
 import type { AgentsMdStats } from '@renderer/types/agentsMd';
 import type { ContextStats } from '@renderer/types/contextInjection';
-import type { ModelInfo } from '@shared/utils/modelParser';
+import type { ModelInfo, ModelProvider } from '@shared/utils/modelParser';
 
 interface TokenUsageDisplayProps {
   /** Input tokens count */
@@ -37,8 +38,10 @@ interface TokenUsageDisplayProps {
   textOutputTokens?: number;
   /** Optional model name for display */
   modelName?: string;
-  /** Optional model family for color styling */
+  /** Optional model family for color styling and weight lookup */
   modelFamily?: ModelInfo['family'];
+  /** Optional model provider for badge display */
+  modelProvider?: ModelProvider;
   /** Size variant - 'sm' for compact, 'md' for slightly larger */
   size?: 'sm' | 'md';
   /** Optional CLAUDE.md injection statistics (deprecated, use contextStats) */
@@ -232,6 +235,13 @@ const SessionContextSection = ({
   );
 };
 
+/** Tailwind color class for a cache hit rate (0-1). */
+function cacheHitRateColor(rate: number): string {
+  if (rate >= 0.7) return 'text-emerald-400';
+  if (rate >= 0.4) return 'text-yellow-400';
+  return 'text-red-400';
+}
+
 export const TokenUsageDisplay = ({
   inputTokens,
   outputTokens,
@@ -241,6 +251,7 @@ export const TokenUsageDisplay = ({
   textOutputTokens = 0,
   modelName,
   modelFamily,
+  modelProvider,
   size = 'sm',
   claudeMdStats,
   contextStats,
@@ -248,6 +259,23 @@ export const TokenUsageDisplay = ({
   totalPhases,
 }: Readonly<TokenUsageDisplayProps>): React.JSX.Element => {
   const totalTokens = inputTokens + cacheReadTokens + cacheCreationTokens + outputTokens;
+
+  // Cache hit rate: cacheRead / (cacheRead + freshInput)
+  const cacheablePart = cacheReadTokens + inputTokens;
+  const cacheHitRate = cacheablePart > 0 ? cacheReadTokens / cacheablePart : 0;
+  const cacheHitPct = (cacheHitRate * 100).toFixed(1);
+
+  // Weighted tokens (only if we know the model family)
+  const weightedTokens =
+    modelFamily !== undefined
+      ? computeWeightedTokens(
+          inputTokens,
+          outputTokens,
+          cacheReadTokens,
+          cacheCreationTokens,
+          String(modelFamily)
+        )
+      : null;
   const formattedTotal = formatTokens(totalTokens);
 
   // Size-based classes
@@ -504,6 +532,35 @@ export const TokenUsageDisplay = ({
                   </span>
                 </div>
 
+                {/* Cache efficiency + weighted tokens */}
+                {cacheablePart > 0 && (
+                  <>
+                    <div
+                      className="my-1"
+                      style={{ borderTop: '1px solid var(--color-border-subtle)' }}
+                    />
+                    <div className="flex items-center justify-between">
+                      <span style={{ color: COLOR_TEXT_MUTED }}>Cache Hit Rate</span>
+                      <span
+                        className={`font-medium tabular-nums ${cacheHitRateColor(cacheHitRate)}`}
+                      >
+                        {cacheHitPct}%
+                      </span>
+                    </div>
+                    {weightedTokens !== null && (
+                      <div className="flex items-center justify-between">
+                        <span style={{ color: COLOR_TEXT_MUTED }}>Weighted Tokens</span>
+                        <span
+                          className="font-medium tabular-nums"
+                          style={{ color: COLOR_TEXT_SECONDARY }}
+                        >
+                          {formatTokens(Math.round(weightedTokens))}
+                        </span>
+                      </div>
+                    )}
+                  </>
+                )}
+
                 {/* Visible Context Breakdown - expandable section */}
                 {contextStats &&
                   (contextStats.totalEstimatedTokens > 0 ||
@@ -544,12 +601,25 @@ export const TokenUsageDisplay = ({
                     />
                     <div className="flex items-center justify-between">
                       <span style={{ color: COLOR_TEXT_MUTED }}>Model</span>
-                      <span
-                        className={`font-medium ${modelColorClass}`}
-                        style={!modelColorClass ? { color: COLOR_TEXT_SECONDARY } : {}}
-                      >
-                        {modelName}
-                      </span>
+                      <div className="flex items-center gap-1.5">
+                        {modelProvider && modelProvider !== 'unknown' && (
+                          <span
+                            className="rounded px-1 py-0.5 text-[9px] font-medium"
+                            style={{
+                              backgroundColor: 'rgba(255,255,255,0.07)',
+                              color: COLOR_TEXT_MUTED,
+                            }}
+                          >
+                            {getProviderLabel(modelProvider)}
+                          </span>
+                        )}
+                        <span
+                          className={`font-medium ${modelColorClass}`}
+                          style={!modelColorClass ? { color: COLOR_TEXT_SECONDARY } : {}}
+                        >
+                          {modelName}
+                        </span>
+                      </div>
                     </div>
                   </>
                 )}

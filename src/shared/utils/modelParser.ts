@@ -1,6 +1,7 @@
 /**
- * Claude model string parser utility.
+ * Model string parser utility.
  * Parses model identifiers into friendly display names and metadata.
+ * Supports Anthropic (claude-*), OpenAI (gpt-*), and unknown providers.
  */
 
 /** Known model families with specific styling */
@@ -9,27 +10,35 @@ export type KnownModelFamily = 'sonnet' | 'opus' | 'haiku';
 /** Model family can be a known family or any arbitrary string for new/unknown models */
 export type ModelFamily = KnownModelFamily | (string & Record<never, never>);
 
+/** Model provider */
+export type ModelProvider = 'anthropic' | 'openai' | 'google' | 'unknown';
+
 export interface ModelInfo {
-  /** Friendly name like "sonnet4.5" */
+  /** Friendly name like "sonnet4.5" or "gpt-5.3-codex" */
   name: string;
-  /** Model family: sonnet, opus, haiku, or any other string for unknown families */
+  /** Model family: sonnet, opus, haiku, gpt-5, or any other string */
   family: ModelFamily;
   /** Major version like 4 or 3 */
   majorVersion: number;
   /** Minor version like 5 or 1 (null if not present) */
   minorVersion: number | null;
+  /** Provider of the model */
+  provider: ModelProvider;
 }
 
 const KNOWN_FAMILIES: KnownModelFamily[] = ['sonnet', 'opus', 'haiku'];
 
 /**
- * Parses a Claude model string into friendly display info.
+ * Parses a model string into friendly display info.
  * Returns null if model string is invalid, synthetic, or empty.
  *
  * Supported formats:
+ * Anthropic:
  * - New format: claude-{family}-{major}-{minor}-{date} (e.g., "claude-sonnet-4-5-20250929")
  * - Old format: claude-{major}-{family}-{date} (e.g., "claude-3-opus-20240229")
  * - Old format with minor: claude-{major}-{minor}-{family}-{date} (e.g., "claude-3-5-sonnet-20241022")
+ * OpenAI:
+ * - gpt-{major}[.{minor}][-{variant}] (e.g., "gpt-5.3-codex", "gpt-4o", "gpt-4")
  */
 export function parseModelString(model: string | undefined): ModelInfo | null {
   // Handle null, undefined, empty, or synthetic models
@@ -39,11 +48,47 @@ export function parseModelString(model: string | undefined): ModelInfo | null {
 
   const normalized = model.toLowerCase().trim();
 
-  // Must start with "claude"
-  if (!normalized.startsWith('claude')) {
+  if (normalized.startsWith('gpt')) {
+    return parseOpenAIModel(normalized);
+  }
+
+  if (normalized.startsWith('claude')) {
+    return parseAnthropicModel(normalized);
+  }
+
+  return null;
+}
+
+/**
+ * Parse an OpenAI model string like "gpt-5.3-codex", "gpt-4o", "gpt-4".
+ */
+function parseOpenAIModel(normalized: string): ModelInfo | null {
+  // gpt-{major}[.{minor}][-{variant}]
+  const match = /^gpt-(\d+)(?:\.(\d+))?(?:-(.+))?$/.exec(normalized);
+  if (!match) {
     return null;
   }
 
+  const majorVersion = parseInt(match[1], 10);
+  const minorVersion = match[2] !== undefined ? parseInt(match[2], 10) : null;
+  const variant = match[3] ?? null;
+
+  // Family key: e.g., "gpt-5-codex", "gpt-5", "gpt-4o"
+  const familyParts = [`gpt-${majorVersion}`];
+  if (variant) familyParts.push(variant);
+  const family = familyParts.join('-');
+
+  // Friendly name: "gpt-5.3-codex" or "gpt-5.3" or "gpt-5"
+  const versionStr = minorVersion !== null ? `${majorVersion}.${minorVersion}` : `${majorVersion}`;
+  const name = variant ? `gpt-${versionStr}-${variant}` : `gpt-${versionStr}`;
+
+  return { name, family, majorVersion, minorVersion, provider: 'openai' };
+}
+
+/**
+ * Parse an Anthropic Claude model string.
+ */
+function parseAnthropicModel(normalized: string): ModelInfo | null {
   // Split into parts (e.g., ["claude", "sonnet", "4", "5", "20250929"])
   const parts = normalized.split('-');
 
@@ -129,27 +174,40 @@ export function parseModelString(model: string | undefined): ModelInfo | null {
     minorVersion !== null ? `${majorVersion}.${minorVersion}` : `${majorVersion}`;
   const name = `${family}${versionString}`;
 
-  return {
-    name,
-    family,
-    majorVersion,
-    minorVersion,
-  };
+  return { name, family, majorVersion, minorVersion, provider: 'anthropic' };
 }
 
 /**
  * Gets the color class for a model family (for Tailwind).
- * Uses consistent neutral gray styling for a clean, Linear-like design.
- * All models use the same muted color for visual consistency.
+ * OpenAI models use green tones; Anthropic uses neutral gray.
  */
 export function getModelColorClass(family: ModelFamily): string {
-  // All families use consistent neutral gray for clean design
   switch (family) {
     case 'opus':
     case 'sonnet':
     case 'haiku':
       return 'text-zinc-400';
     default:
+      // OpenAI gpt-* families
+      if (family.startsWith('gpt-')) {
+        return 'text-emerald-400';
+      }
       return 'text-zinc-500';
+  }
+}
+
+/**
+ * Gets a short provider label for display (e.g., "Anthropic", "OpenAI").
+ */
+export function getProviderLabel(provider: ModelProvider): string {
+  switch (provider) {
+    case 'anthropic':
+      return 'Anthropic';
+    case 'openai':
+      return 'OpenAI';
+    case 'google':
+      return 'Google';
+    default:
+      return 'Unknown';
   }
 }
