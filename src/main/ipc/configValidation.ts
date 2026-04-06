@@ -451,31 +451,19 @@ function validateModelsSection(data: unknown): ValidationSuccess<'models'> | Val
       return { valid: false, error: 'models.weights must be an object' };
     }
 
-    const weights: Record<string, { input: number; output: number; cached: number }> = {};
+    const weights: Record<string, { multiplier: number }> = {};
     for (const [family, entry] of Object.entries(value)) {
       if (!isPlainObject(entry)) {
         return { valid: false, error: `models.weights.${family} must be an object` };
       }
-      const { input, output, cached } = entry;
-      if (!isFiniteNumber(input) || input <= 0) {
+      const { multiplier } = entry;
+      if (!isFiniteNumber(multiplier) || multiplier <= 0) {
         return {
           valid: false,
-          error: `models.weights.${family}.input must be a positive finite number`,
+          error: `models.weights.${family}.multiplier must be a positive finite number`,
         };
       }
-      if (!isFiniteNumber(output) || output <= 0) {
-        return {
-          valid: false,
-          error: `models.weights.${family}.output must be a positive finite number`,
-        };
-      }
-      if (!isFiniteNumber(cached) || cached <= 0) {
-        return {
-          valid: false,
-          error: `models.weights.${family}.cached must be a positive finite number`,
-        };
-      }
-      weights[family] = { input, output, cached };
+      weights[family] = { multiplier };
     }
     result.weights = weights;
   }

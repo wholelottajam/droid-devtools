@@ -16,6 +16,7 @@
 import { createLogger } from '@shared/utils/logger';
 import { ipcMain } from 'electron';
 
+import { registerAnalyticsHandlers, removeAnalyticsHandlers } from './analyticsHandlers';
 import { initializeConfigHandlers, registerConfigHandlers, removeConfigHandlers } from './config';
 import {
   initializeContextHandlers,
@@ -96,6 +97,7 @@ export function initializeIpcHandlers(
   registerSshHandlers(ipcMain);
   registerContextHandlers(ipcMain);
   registerWindowHandlers(ipcMain);
+  registerAnalyticsHandlers(ipcMain);
 
   logger.info('All handlers registered');
 }
@@ -117,6 +119,7 @@ export function removeIpcHandlers(): void {
   removeSshHandlers(ipcMain);
   removeContextHandlers(ipcMain);
   removeWindowHandlers(ipcMain);
+  removeAnalyticsHandlers(ipcMain);
 
   logger.info('All handlers removed');
 }

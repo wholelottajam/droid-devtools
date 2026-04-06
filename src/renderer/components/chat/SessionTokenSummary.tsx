@@ -6,7 +6,7 @@
 import React, { useState } from 'react';
 
 import { useStore } from '@renderer/store';
-import { computeWeightedTokens, getModelWeights } from '@shared/constants/modelWeights';
+import { computeWeightedTokens } from '@shared/constants/modelWeights';
 import { parseModelString } from '@shared/utils/modelParser';
 import { formatTokensCompact } from '@shared/utils/tokenFormatting';
 import { ChevronDown, ChevronRight } from 'lucide-react';

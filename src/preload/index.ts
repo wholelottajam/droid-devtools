@@ -31,6 +31,7 @@ import {
   WINDOW_MAXIMIZE,
   WINDOW_MINIMIZE,
 } from './constants/ipcChannels';
+import { ANALYTICS_MONTHLY_USAGE } from './constants/ipcChannels';
 import {
   CONFIG_ADD_IGNORE_REGEX,
   CONFIG_ADD_IGNORE_REPOSITORY,
@@ -59,6 +60,7 @@ import {
 } from './constants/ipcChannels';
 
 import type {
+  AnalyticsAPI,
   AppConfig,
   ContextInfo,
   ElectronAPI,
@@ -324,6 +326,11 @@ const electronAPI: ElectronAPI = {
       return invokeIpcWithResult<void>(CONFIG_UNHIDE_SESSIONS, projectId, sessionIds);
     },
   },
+
+  // Analytics API
+  analytics: {
+    getMonthlyUsage: (months?: number) => invokeIpcWithResult(ANALYTICS_MONTHLY_USAGE, months),
+  } satisfies AnalyticsAPI,
 
   // Deep link navigation
   session: {

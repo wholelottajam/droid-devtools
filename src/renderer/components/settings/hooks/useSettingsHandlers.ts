@@ -27,8 +27,6 @@ interface UseSettingsHandlersProps {
   ) => Promise<void>;
 }
 
-type ModelWeightField = 'input' | 'output' | 'cached';
-
 interface SettingsHandlers {
   // General handlers
   handleGeneralToggle: (key: keyof AppConfig['general'], value: boolean) => void;
@@ -51,7 +49,7 @@ interface SettingsHandlers {
   handleDisplayToggle: (key: keyof AppConfig['display'], value: boolean) => void;
 
   // Model weight handlers
-  handleUpdateModelWeight: (family: string, field: ModelWeightField, value: number) => void;
+  handleUpdateModelWeight: (family: string, value: number) => void;
   handleResetModelFamily: (family: string) => void;
   handleResetAllModelWeights: () => void;
   handleAddModel: (family: string) => void;
@@ -251,10 +249,10 @@ export function useSettingsHandlers({
 
   // Model weight handlers
   const handleUpdateModelWeight = useCallback(
-    (family: string, field: ModelWeightField, value: number) => {
+    (family: string, value: number) => {
       const current = configRef.current?.models?.weights ?? {};
       void updateConfig('models', {
-        weights: { ...current, [family]: { ...(current[family] ?? {}), [field]: value } },
+        weights: { ...current, [family]: { multiplier: value } },
       });
     },
     [updateConfig]

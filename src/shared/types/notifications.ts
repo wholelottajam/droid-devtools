@@ -318,6 +318,6 @@ export interface AppConfig {
   /** Model weight multiplier configuration */
   models?: {
     /** Per-model-family weight multipliers. Key is model family (lowercase). */
-    weights: Record<string, { input: number; output: number; cached: number }>;
+    weights: Record<string, { multiplier: number }>;
   };
 }

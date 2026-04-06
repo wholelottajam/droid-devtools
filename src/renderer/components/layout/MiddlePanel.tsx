@@ -1,6 +1,7 @@
 import React from 'react';
 
 import { ChatHistory } from '../chat/ChatHistory';
+import { EfficiencyInsightsPanel } from '../chat/EfficiencyInsightsPanel';
 import { SessionSettingsBadge } from '../chat/SessionSettingsBadge';
 import { SessionTokenSummary } from '../chat/SessionTokenSummary';
 import { TokenAnalysisPanel } from '../chat/TokenAnalysisPanel';
@@ -18,6 +19,7 @@ export const MiddlePanel: React.FC<MiddlePanelProps> = ({ tabId }) => {
       <SessionSettingsBadge tabId={tabId} />
       <SessionTokenSummary tabId={tabId} />
       <TokenAnalysisPanel tabId={tabId} />
+      <EfficiencyInsightsPanel tabId={tabId} />
       <ChatHistory tabId={tabId} />
     </div>
   );

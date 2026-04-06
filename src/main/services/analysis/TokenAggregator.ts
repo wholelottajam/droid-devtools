@@ -199,13 +199,30 @@ export class TokenAggregator {
   private extractFamily(modelStr: string): string {
     if (!modelStr) return 'unknown';
     const lower = modelStr.toLowerCase();
+    // Anthropic
     if (lower.includes('opus')) return 'opus';
     if (lower.includes('sonnet')) return 'sonnet';
     if (lower.includes('haiku')) return 'haiku';
-    if (lower.includes('gpt-5-codex')) return 'gpt-5-codex';
-    if (lower.includes('gpt-5')) return 'gpt-5';
-    if (lower.includes('gpt-4o')) return 'gpt-4o';
-    if (lower.includes('gpt-4')) return 'gpt-4';
+    // OpenAI — check more specific patterns first
+    if (lower.includes('gpt-5.4-fast')) return 'gpt-5.4-fast';
+    if (lower.includes('gpt-5.4-mini')) return 'gpt-5.4-mini';
+    if (lower.includes('gpt-5.4')) return 'gpt-5.4';
+    if (lower.includes('gpt-5.3-codex')) return 'gpt-5.3-codex';
+    if (lower.includes('gpt-5.2-codex')) return 'gpt-5.2-codex';
+    if (lower.includes('gpt-5.2')) return 'gpt-5.2';
+    if (lower.includes('gpt-5.1-codex')) return 'gpt-5.1-codex';
+    if (lower.includes('gpt-5.1')) return 'gpt-5.1';
+    // Google
+    if (lower.includes('gemini-flash')) return 'gemini-flash';
+    if (lower.includes('gemini-pro')) return 'gemini-pro';
+    if (lower.includes('gemini')) return 'gemini-pro';
+    // GLM
+    if (lower.includes('glm-5')) return 'glm-5';
+    if (lower.includes('glm-4.7') || lower.includes('glm4.7')) return 'glm-4.7';
+    if (lower.includes('glm')) return 'glm-4.7';
+    // Other
+    if (lower.includes('kimi-k2.5') || lower.includes('kimi')) return 'kimi-k2.5';
+    if (lower.includes('minimax-m2.5') || lower.includes('minimax')) return 'minimax-m2.5';
     return modelStr.split('/').pop()?.split(':')[0] ?? modelStr;
   }
 }

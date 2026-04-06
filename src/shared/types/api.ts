@@ -7,6 +7,7 @@
  * Shared between preload and renderer processes.
  */
 
+import type { MonthlyTokenUsage } from './analytics';
 import type {
   AppConfig,
   DetectedError,
@@ -163,6 +164,18 @@ export interface WslFactoryRootCandidate {
   path: string;
   /** True if this root contains "sessions" directory */
   hasSessionsDir: boolean;
+}
+
+// =============================================================================
+// Analytics API
+// =============================================================================
+
+/**
+ * Analytics API exposed via preload.
+ */
+export interface AnalyticsAPI {
+  /** Get monthly token usage aggregated across all sessions */
+  getMonthlyUsage: (months?: number) => Promise<MonthlyTokenUsage[]>;
 }
 
 // =============================================================================
@@ -408,6 +421,9 @@ export interface ElectronAPI {
 
   // Config API
   config: ConfigAPI;
+
+  // Analytics API
+  analytics: AnalyticsAPI;
 
   // Deep link navigation
   session: SessionAPI;

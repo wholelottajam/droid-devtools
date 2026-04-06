@@ -1,34 +1,43 @@
 /**
  * Token weight multipliers per model family.
- * Not dollar costs — normalized relative weights (sonnet = 1.0 baseline).
+ * Not dollar costs — single relative multiplier per model (sonnet = 1.0 baseline).
  * Used to compute "weighted tokens" for cross-model comparisons.
  */
 
 export interface ModelWeights {
-  /** Weight applied to input tokens */
-  input: number;
-  /** Weight applied to output tokens */
-  output: number;
-  /** Weight applied to cache read tokens */
-  cached: number;
+  /** Single multiplier applied to all tokens */
+  multiplier: number;
 }
 
 /**
- * Relative token weights keyed by model family string (lowercase).
+ * Official Droid multipliers keyed by model family string (lowercase).
  * Weights are relative to claude-sonnet as baseline (1.0).
  */
 export const MODEL_WEIGHTS: Record<string, ModelWeights> = {
   // Anthropic
-  opus: { input: 5.0, output: 5.0, cached: 0.5 },
-  sonnet: { input: 1.0, output: 1.0, cached: 0.1 },
-  haiku: { input: 0.25, output: 0.25, cached: 0.03 },
-  // OpenAI (approximate relative to sonnet baseline)
-  'gpt-5-codex': { input: 2.0, output: 2.0, cached: 0.2 },
-  'gpt-5': { input: 3.0, output: 3.0, cached: 0.3 },
-  'gpt-4o': { input: 0.5, output: 0.5, cached: 0.05 },
-  'gpt-4': { input: 1.5, output: 1.5, cached: 0.15 },
+  opus: { multiplier: 2.0 },
+  sonnet: { multiplier: 1.2 },
+  haiku: { multiplier: 0.4 },
+  // OpenAI
+  'gpt-5.4': { multiplier: 1.0 },
+  'gpt-5.4-fast': { multiplier: 2.0 },
+  'gpt-5.4-mini': { multiplier: 0.3 },
+  'gpt-5.2': { multiplier: 0.7 },
+  'gpt-5.2-codex': { multiplier: 0.7 },
+  'gpt-5.3-codex': { multiplier: 0.7 },
+  'gpt-5.1': { multiplier: 0.5 },
+  'gpt-5.1-codex': { multiplier: 0.5 },
+  // Google
+  'gemini-pro': { multiplier: 0.8 },
+  'gemini-flash': { multiplier: 0.2 },
+  // GLM
+  'glm-4.7': { multiplier: 0.25 },
+  'glm-5': { multiplier: 0.4 },
+  // Other
+  'kimi-k2.5': { multiplier: 0.25 },
+  'minimax-m2.5': { multiplier: 0.12 },
   // Fallback
-  default: { input: 1.0, output: 1.0, cached: 0.1 },
+  default: { multiplier: 1.0 },
 };
 
 /**
@@ -50,6 +59,7 @@ export function getModelWeights(
 
 /**
  * Compute total weighted tokens for a given token breakdown.
+ * Applies a single multiplier to the sum of all token types.
  * @param configWeights - Optional config-overridden weights (from AppConfig.models.weights)
  */
 export function computeWeightedTokens(
@@ -61,10 +71,5 @@ export function computeWeightedTokens(
   configWeights?: Record<string, ModelWeights>
 ): number {
   const weights = getModelWeights(family, configWeights);
-  return (
-    inputTokens * weights.input +
-    outputTokens * weights.output +
-    cacheReadTokens * weights.cached +
-    cacheCreationTokens * weights.input
-  );
+  return (inputTokens + outputTokens + cacheReadTokens + cacheCreationTokens) * weights.multiplier;
 }

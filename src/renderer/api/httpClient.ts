@@ -43,7 +43,8 @@ import type {
   WaterfallData,
   WslFactoryRootCandidate,
 } from '@shared/types';
-import type { AgentConfig, DroidConfig } from '@shared/types/api';
+import type { MonthlyTokenUsage } from '@shared/types/analytics';
+import type { AgentConfig, AnalyticsAPI, DroidConfig } from '@shared/types/api';
 
 export class HttpAPIClient implements ElectronAPI {
   private baseUrl: string;
@@ -470,6 +471,20 @@ export class HttpAPIClient implements ElectronAPI {
       this.post('/api/config/hide-sessions', { projectId, sessionIds }),
     unhideSessions: (projectId: string, sessionIds: string[]): Promise<void> =>
       this.post('/api/config/unhide-sessions', { projectId, sessionIds }),
+  };
+
+  // ---------------------------------------------------------------------------
+  // Analytics (browser fallback — returns empty data)
+  // ---------------------------------------------------------------------------
+
+  analytics: AnalyticsAPI = {
+    getMonthlyUsage: async (_months?: number): Promise<MonthlyTokenUsage[]> => {
+      try {
+        return await this.get<MonthlyTokenUsage[]>('/api/analytics/monthly-usage');
+      } catch {
+        return [];
+      }
+    },
   };
 
   // ---------------------------------------------------------------------------

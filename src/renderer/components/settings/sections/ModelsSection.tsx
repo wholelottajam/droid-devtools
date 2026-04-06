@@ -10,14 +10,12 @@ import { MODEL_WEIGHTS } from '@shared/constants/modelWeights';
 import { SettingsSectionHeader } from '../components';
 
 interface ModelWeightEntry {
-  input: number;
-  output: number;
-  cached: number;
+  multiplier: number;
 }
 
 interface ModelsSectionProps {
   readonly weights: Record<string, ModelWeightEntry>;
-  readonly onUpdateWeight: (family: string, field: keyof ModelWeightEntry, value: number) => void;
+  readonly onUpdateWeight: (family: string, value: number) => void;
   readonly onResetFamily: (family: string) => void;
   readonly onResetAll: () => void;
   readonly onAddModel: (family: string) => void;
@@ -53,7 +51,7 @@ const WeightInput = ({
       onKeyDown={(e) => {
         if (e.key === 'Enter') commit();
       }}
-      className="w-16 rounded border px-1.5 py-0.5 text-center text-xs outline-none"
+      className="w-20 rounded border px-1.5 py-0.5 text-center text-xs outline-none"
       style={{
         backgroundColor: 'var(--color-surface)',
         borderColor: 'var(--color-border-emphasis)',
@@ -108,21 +106,19 @@ export const ModelsSection = ({
       </div>
 
       <p className="mb-4 text-xs" style={{ color: 'var(--color-text-muted)' }}>
-        Relative weights used for cross-model token comparison. Sonnet = 1.0 baseline.
+        Single multiplier per model for cross-model token comparison. Sonnet = 1.0 baseline.
       </p>
 
       {/* Column headers */}
       <div
         className="mb-1 grid items-center gap-2 text-[10px] font-medium uppercase tracking-wider"
         style={{
-          gridTemplateColumns: '1fr 4rem 4rem 4rem 5rem',
+          gridTemplateColumns: '1fr 5rem 5rem',
           color: 'var(--color-text-muted)',
         }}
       >
         <span>Family</span>
-        <span className="text-center">Input</span>
-        <span className="text-center">Output</span>
-        <span className="text-center">Cache</span>
+        <span className="text-center">Multiplier</span>
         <span />
       </div>
 
@@ -137,16 +133,19 @@ export const ModelsSection = ({
             key={family}
             className="grid items-center gap-2 border-b py-2"
             style={{
-              gridTemplateColumns: '1fr 4rem 4rem 4rem 5rem',
+              gridTemplateColumns: '1fr 5rem 5rem',
               borderColor: 'var(--color-border-subtle)',
             }}
           >
             <span className="truncate text-sm" style={{ color: 'var(--color-text)' }}>
               {family}
             </span>
-            <WeightInput value={w.input} onChange={(v) => onUpdateWeight(family, 'input', v)} />
-            <WeightInput value={w.output} onChange={(v) => onUpdateWeight(family, 'output', v)} />
-            <WeightInput value={w.cached} onChange={(v) => onUpdateWeight(family, 'cached', v)} />
+            <div className="flex items-center justify-center gap-1">
+              <WeightInput value={w.multiplier} onChange={(v) => onUpdateWeight(family, v)} />
+              <span className="text-[10px]" style={{ color: 'var(--color-text-muted)' }}>
+                ×
+              </span>
+            </div>
             <div className="flex items-center justify-end gap-1">
               <button
                 onClick={() => onResetFamily(family)}
@@ -209,7 +208,7 @@ export const ModelsSection = ({
         </div>
         {addError && <p className="mt-1 text-xs text-red-400">{addError}</p>}
         <p className="mt-1 text-xs" style={{ color: 'var(--color-text-muted)' }}>
-          New models start with sonnet weights (1.0 / 1.0 / 0.1). Adjust as needed.
+          New models start with sonnet weight (1.2×). Adjust as needed.
         </p>
       </div>
     </div>

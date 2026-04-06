@@ -164,11 +164,11 @@ export const TokenAnalysisPanel = React.memo(function TokenAnalysisPanel({
   const currentW = getModelWeights(currentFamily, configWeights);
   const compW = getModelWeights(compModel, configWeights);
 
-  const maxInput = Math.max(inputTokens * currentW.input, inputTokens * compW.input);
-  const maxOutput = Math.max(outputTokens * currentW.output, outputTokens * compW.output);
+  const maxInput = Math.max(inputTokens * currentW.multiplier, inputTokens * compW.multiplier);
+  const maxOutput = Math.max(outputTokens * currentW.multiplier, outputTokens * compW.multiplier);
   const maxCache = Math.max(
-    (cacheReadTokens + cacheCreationTokens) * currentW.cached,
-    (cacheReadTokens + cacheCreationTokens) * compW.cached
+    (cacheReadTokens + cacheCreationTokens) * currentW.multiplier,
+    (cacheReadTokens + cacheCreationTokens) * compW.multiplier
   );
 
   return (
@@ -213,12 +213,12 @@ export const TokenAnalysisPanel = React.memo(function TokenAnalysisPanel({
               </span>
             </div>
             <div className="flex gap-3" style={{ color: 'var(--color-text-muted)' }}>
-              <span>in {formatTokensCompact(Math.round(inputTokens * currentW.input))}</span>
-              <span>out {formatTokensCompact(Math.round(outputTokens * currentW.output))}</span>
+              <span>in {formatTokensCompact(Math.round(inputTokens * currentW.multiplier))}</span>
+              <span>out {formatTokensCompact(Math.round(outputTokens * currentW.multiplier))}</span>
               <span>
                 cache{' '}
                 {formatTokensCompact(
-                  Math.round((cacheReadTokens + cacheCreationTokens) * currentW.cached)
+                  Math.round((cacheReadTokens + cacheCreationTokens) * currentW.multiplier)
                 )}
               </span>
             </div>
@@ -272,24 +272,24 @@ export const TokenAnalysisPanel = React.memo(function TokenAnalysisPanel({
             </div>
             <TokenBar
               label="Input"
-              current={Math.round(inputTokens * currentW.input)}
-              comparison={Math.round(inputTokens * compW.input)}
+              current={Math.round(inputTokens * currentW.multiplier)}
+              comparison={Math.round(inputTokens * compW.multiplier)}
               maxValue={maxInput}
               currentColor="rgba(96,165,250,0.7)"
               comparisonColor="rgba(167,139,250,0.7)"
             />
             <TokenBar
               label="Output"
-              current={Math.round(outputTokens * currentW.output)}
-              comparison={Math.round(outputTokens * compW.output)}
+              current={Math.round(outputTokens * currentW.multiplier)}
+              comparison={Math.round(outputTokens * compW.multiplier)}
               maxValue={maxOutput}
               currentColor="rgba(96,165,250,0.7)"
               comparisonColor="rgba(167,139,250,0.7)"
             />
             <TokenBar
               label="Cache"
-              current={Math.round((cacheReadTokens + cacheCreationTokens) * currentW.cached)}
-              comparison={Math.round((cacheReadTokens + cacheCreationTokens) * compW.cached)}
+              current={Math.round((cacheReadTokens + cacheCreationTokens) * currentW.multiplier)}
+              comparison={Math.round((cacheReadTokens + cacheCreationTokens) * compW.multiplier)}
               maxValue={maxCache}
               currentColor="rgba(96,165,250,0.7)"
               comparisonColor="rgba(167,139,250,0.7)"

@@ -215,9 +215,7 @@ export interface HttpServerConfig {
 }
 
 export interface ModelWeightEntry {
-  input: number;
-  output: number;
-  cached: number;
+  multiplier: number;
 }
 
 export interface ModelsConfig {
@@ -246,14 +244,30 @@ const DEFAULT_IGNORED_REGEX = ["The user doesn't want to proceed with this tool 
 
 const DEFAULT_MODEL_WEIGHTS: ModelsConfig = {
   weights: {
-    opus: { input: 5.0, output: 5.0, cached: 0.5 },
-    sonnet: { input: 1.0, output: 1.0, cached: 0.1 },
-    haiku: { input: 0.25, output: 0.25, cached: 0.03 },
-    'gpt-5-codex': { input: 2.0, output: 2.0, cached: 0.2 },
-    'gpt-5': { input: 3.0, output: 3.0, cached: 0.3 },
-    'gpt-4o': { input: 0.5, output: 0.5, cached: 0.05 },
-    'gpt-4': { input: 1.5, output: 1.5, cached: 0.15 },
-    default: { input: 1.0, output: 1.0, cached: 0.1 },
+    // Anthropic
+    opus: { multiplier: 2.0 },
+    sonnet: { multiplier: 1.2 },
+    haiku: { multiplier: 0.4 },
+    // OpenAI
+    'gpt-5.4': { multiplier: 1.0 },
+    'gpt-5.4-fast': { multiplier: 2.0 },
+    'gpt-5.4-mini': { multiplier: 0.3 },
+    'gpt-5.2': { multiplier: 0.7 },
+    'gpt-5.2-codex': { multiplier: 0.7 },
+    'gpt-5.3-codex': { multiplier: 0.7 },
+    'gpt-5.1': { multiplier: 0.5 },
+    'gpt-5.1-codex': { multiplier: 0.5 },
+    // Google
+    'gemini-pro': { multiplier: 0.8 },
+    'gemini-flash': { multiplier: 0.2 },
+    // GLM
+    'glm-4.7': { multiplier: 0.25 },
+    'glm-5': { multiplier: 0.4 },
+    // Other
+    'kimi-k2.5': { multiplier: 0.25 },
+    'minimax-m2.5': { multiplier: 0.12 },
+    // Fallback
+    default: { multiplier: 1.0 },
   },
 };
 
@@ -447,6 +461,28 @@ export class ConfigManager {
   }
 
   /**
+   * Migrates old model weight entries from { input, output, cached } to { multiplier }.
+   * Uses `input` as the multiplier for migration (closest to total token weight).
+   */
+  private static migrateModelWeights(
+    weights: Record<string, unknown>
+  ): Record<string, ModelWeightEntry> {
+    const result: Record<string, ModelWeightEntry> = {};
+    for (const [key, value] of Object.entries(weights)) {
+      if (typeof value === 'object' && value !== null) {
+        const entry = value as Record<string, unknown>;
+        if (typeof entry.multiplier === 'number') {
+          result[key] = { multiplier: entry.multiplier };
+        } else if (typeof entry.input === 'number') {
+          // Migration: old { input, output, cached } → { multiplier }
+          result[key] = { multiplier: entry.input };
+        }
+      }
+    }
+    return result;
+  }
+
+  /**
    * Merges loaded config with defaults to ensure all fields exist.
    * Special handling for triggers array to preserve existing triggers
    * and add any missing builtin triggers.
@@ -491,7 +527,9 @@ export class ConfigManager {
       models: {
         weights: {
           ...DEFAULT_MODEL_WEIGHTS.weights,
-          ...(loaded.models?.weights ?? {}),
+          ...ConfigManager.migrateModelWeights(
+            (loaded.models?.weights ?? {}) as Record<string, unknown>
+          ),
         },
       },
     };
