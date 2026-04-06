@@ -59,8 +59,6 @@ export const SettingsView = (): React.JSX.Element | null => {
     updateConfig,
   });
 
-  const modelWeights = config.models?.weights ?? {};
-
   // Loading state
   if (loading) {
     return (
@@ -101,6 +99,8 @@ export const SettingsView = (): React.JSX.Element | null => {
   }
 
   if (!config) return null;
+
+  const modelWeights = config.models?.weights ?? {};
 
   return (
     <div className="flex-1 overflow-auto" style={{ backgroundColor: 'var(--color-surface)' }}>
