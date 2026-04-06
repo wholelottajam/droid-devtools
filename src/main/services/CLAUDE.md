@@ -21,6 +21,7 @@ Business logic organized by domain.
 - **SubagentDetailBuilder** - Builds subagent detail views
 - **ToolExecutionBuilder** - Builds tool execution tracking
 - **ToolResultExtractor** - Extracts tool results
+- **TokenAggregator** - Monthly token usage aggregation
 - **ToolSummaryFormatter** - Formats tool summaries
 
 ### Discovery

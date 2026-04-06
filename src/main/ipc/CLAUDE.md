@@ -15,7 +15,12 @@ ipc/
 ├── sessions.ts          # Session operations, pagination
 ├── subagents.ts         # Subagent detail drill-down
 ├── utility.ts           # Shell operations, file reading
-└── validation.ts        # Path validation, file mentioning
+├── validation.ts        # Path validation, file mentioning
+├── context.ts           # CLAUDE.md file reading
+├── ssh.ts               # SSH connection handling
+├── window.ts            # Window management
+├── analytics.ts         # Analytics data queries
+└── analyticsHandlers.ts # Analytics IPC handler registration
 ```
 
 ## Handler Pattern

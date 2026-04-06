@@ -13,7 +13,7 @@ Cross-process code used by main and renderer.
 - Process-specific logic
 
 ## Structure
-- `types/` - Shared type definitions (`api.ts`, `notifications.ts`, `visualization.ts`)
+- `types/` - Shared type definitions (`api.ts`, `analytics.ts`, `notifications.ts`, `visualization.ts`)
 - `utils/` - Pure utility functions
   - `tokenFormatting.ts` - Token formatting and estimation (`estimateTokens`, `formatTokensCompact`)
   - `modelParser.ts` - Model name/family parsing
@@ -23,6 +23,7 @@ Cross-process code used by main and renderer.
   - `errorHandling.ts` - Error helpers
   - `logger.ts` - Logging utility
 - `constants/` - Shared constants
+  - `modelWeights.ts` - Model token weight multipliers (ModelWeights interface)
   - `cache.ts` - Cache configuration
   - `trafficLights.ts` - macOS traffic light constants
   - `triggerColors.ts` - Trigger color palette

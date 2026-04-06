@@ -26,6 +26,7 @@ Exposed API via `window.electronAPI`, organized by domain:
 | Config | 16 | `config.get()`, `config.update()`, `config.addTrigger()`, `config.openInEditor()`, `config.pinSession()`, `config.unpinSession()`, etc. |
 | Notifications | 9 | `notifications.get()`, `notifications.markRead()`, `notifications.onNew()`, etc. |
 | Utilities | 7 | `openPath()`, `openExternal()`, `onFileChange()`, `onTodoChange()`, `getZoomFactor()`, `onZoomFactorChanged()` |
+| Analytics | 1 | `analytics.getMonthlyUsage()` |
 | Session | 1 | `session.scrollToLine()` |
 
 Full API signatures in `src/preload/index.ts`, channel constants in `src/preload/constants/ipcChannels.ts`.

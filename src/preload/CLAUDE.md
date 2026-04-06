@@ -34,6 +34,9 @@ Groups exposed methods by domain:
 - `config.{snooze,clearSnooze,selectFolders}`
 - `config.{openInEditor,pinSession,unpinSession}`
 
+### Analytics API
+- `analytics.getMonthlyUsage()` - Aggregated monthly token usage
+
 ### Utilities
 - `openPath()` - Shell operations
 - `openExternal()` - Open URLs in browser

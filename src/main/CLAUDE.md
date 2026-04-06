@@ -20,6 +20,11 @@ Handlers in `ipc/` by domain:
 - `utility.ts` - Shell & file operations
 - `config.ts` - Configuration
 - `notifications.ts` - Notifications
+- `context.ts` - CLAUDE.md file reading
+- `ssh.ts` - SSH connection handling
+- `window.ts` - Window management
+- `analytics.ts` - Analytics data queries
+- `analyticsHandlers.ts` - Analytics IPC handler registration
 
 ## Adding IPC Handler
 1. Add to domain file in `ipc/`

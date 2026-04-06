@@ -11,6 +11,7 @@ React application running in Chromium.
 - `hooks/` - Custom React hooks
 - `utils/` - Renderer utilities
 - `types/` - Renderer type definitions
+- `api/` - Unified API adapter (Electron IPC or HTTP fallback)
 - `constants/` - CSS variables (`cssVariables.ts`), layout constants (`layout.ts`), team colors (`teamColors.ts`)
 - `contexts/` - React contexts (`TabUIContext.tsx`, `useTabUIContext.ts`)
 
@@ -31,7 +32,8 @@ components/
 - `data.ts` - Core data types (ParsedMessage, SemanticStep, SessionMetrics)
 - `groups.ts` - Chat groups (UserGroup, AIGroup, SystemGroup, AIGroupDisplayItem union)
 - `contextInjection.ts` - Context tracking (ContextInjection union, ContextStats, ContextPhaseInfo)
-- `claudeMd.ts` - CLAUDE.md injection types
+- `agentsMd.ts` - CLAUDE.md/agents.md injection types
+- `efficiency.ts` - Efficiency suggestion types (EfficiencySuggestion, EfficiencyCategory)
 - `panes.ts` - Pane layout types
 - `tabs.ts` - Tab management types
 - `notifications.ts` - Notification types
@@ -39,7 +41,7 @@ components/
 
 ## Utils (`utils/`)
 - `contextTracker.ts` - Visible context tracking (computeContextStats, processSessionContextWithPhases)
-- `claudeMdTracker.ts` - CLAUDE.md injection detection
+- `agentsMdTracker.ts` - CLAUDE.md/agents.md injection detection
 - `aiGroupEnhancer.ts` - AI group enrichment (linkToolCallsToResults, buildDisplayItems)
 - `aiGroupHelpers.ts` - AI group utility functions
 - `displayItemBuilder.ts` - Display item construction
@@ -51,7 +53,9 @@ components/
 - `pathDisplay.ts` - Path display formatting
 - `pathUtils.ts` - Path utility functions
 - `slashCommandExtractor.ts` - Slash command extraction
+- `sessionExporter.ts` - Session data export
 - `stringUtils.ts` - String utility functions
+- `tokenEfficiency.ts` - Token efficiency analysis (analyzeEfficiency)
 - `toolLinkingEngine.ts` - Tool call/result linking
 - `toolRendering/` - Tool rendering helpers
   - `toolContentChecks.ts` - Tool content validation

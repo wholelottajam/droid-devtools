@@ -25,13 +25,16 @@ test/
 ├── main/
 │   ├── ipc/             # IPC handler tests
 │   │   ├── configValidation.test.ts
-│   │   └── guards.test.ts
+│   │   ├── globalSearch.test.ts
+│   │   ├── guards.test.ts
+│   │   └── searchSessionId.test.ts
 │   ├── services/        # Service tests
 │   │   ├── analysis/    (ChunkBuilder)
-│   │   ├── discovery/   (ProjectPathResolver, SessionSearcher)
+│   │   ├── discovery/   (ProjectPathResolver, ProjectScanner, SessionSearcher, SearchTextCache, SearchTextExtractor)
 │   │   ├── infrastructure/ (FileWatcher)
-│   │   └── parsing/     (MessageClassifier, SessionParser)
+│   │   └── parsing/     (AgentConfigReader, MessageClassifier, SessionParser, sessionSettingsReader)
 │   └── utils/           # Main process utilities
+│       ├── droidJsonlParsing.test.ts
 │       ├── jsonl.test.ts
 │       ├── pathDecoder.test.ts
 │       ├── pathValidation.test.ts
@@ -50,16 +53,26 @@ test/
 │   │   ├── sessionSlice.test.ts
 │   │   ├── tabSlice.test.ts
 │   │   └── tabUISlice.test.ts
+│   ├── components/      # Component tests
+│   │   └── renderOutput.test.ts
+│   ├── constants/       # Constants tests
+│   │   └── teamColors.test.ts
 │   └── utils/           # Renderer utilities
 │       ├── claudeMdTracker.test.ts
 │       ├── dateGrouping.test.ts
+│       ├── displayItemBuilder.test.ts
 │       ├── formatters.test.ts
-│       └── pathUtils.test.ts
+│       ├── keyboardUtils.test.ts
+│       ├── pathUtils.test.ts
+│       ├── renderHelpers.test.ts
+│       ├── sessionExporter.test.ts
+│       └── stringUtils.test.ts
 ├── shared/
 │   └── utils/           # Shared utilities
 │       ├── markdownSearchRendererAlignment.test.ts
 │       ├── markdownTextSearch.test.ts
 │       ├── modelParser.test.ts
+│       ├── sessionIdValidator.test.ts
 │       └── tokenFormatting.test.ts
 ├── mocks/               # Test fixtures and mocks
 └── setup.ts             # Test setup/config

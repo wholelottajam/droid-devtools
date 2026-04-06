@@ -33,6 +33,9 @@ components/
 │   ├── ChatHistoryLoadingState.tsx # Loading state display
 │   ├── CompactBoundary.tsx  # Compaction event boundary marker
 │   ├── ContextBadge.tsx     # Per-turn context injection popover badge
+│   ├── EfficiencyInsightsPanel.tsx  # Token efficiency suggestions panel
+│   ├── SessionTokenSummary.tsx      # Session token summary display
+│   ├── TokenAnalysisPanel.tsx       # Token analysis breakdown panel
 │   ├── DisplayItemList.tsx  # Display item list rendering
 │   ├── LastOutputDisplay.tsx # Last output display
 │   ├── SystemChatGroup.tsx  # System message group display
@@ -48,13 +51,16 @@ components/
 │   ├── TokenUsageDisplay    # Token breakdown with context stats hover
 │   └── WorktreeBadge        # Git worktree badge
 ├── dashboard/               # Overview and listing pages
+│   ├── DashboardView.tsx        # Main dashboard container
+│   ├── MonthlyTokenUsageView.tsx # Monthly token usage chart
+│   └── TokenTrendsView.tsx      # Token trend visualization
 ├── layout/                  # App shell, sidebars, headers
 ├── notifications/           # Notification panels and badges
 ├── search/                  # Search UI and results
 ├── settings/                # Settings pages and controls
 │   ├── components/          # Reusable setting controls (SettingRow, SettingsToggle, etc.)
 │   ├── hooks/               # Settings-specific hooks
-│   ├── sections/            # Setting sections (General, Notifications, Advanced)
+│   ├── sections/            # Setting sections (General, Notifications, Advanced, Connection, Workspace, Models)
 │   └── NotificationTriggerSettings/  # Trigger config UI
 │       ├── components/      # Trigger form components
 │       ├── hooks/           # Trigger form hooks
