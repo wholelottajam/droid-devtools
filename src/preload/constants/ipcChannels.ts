@@ -186,6 +186,13 @@ export const SESSION_REFRESH = 'session:refresh';
 export const GET_DROID_CONFIGS = 'get-droid-configs';
 
 // =============================================================================
+// Analytics API Channels
+// =============================================================================
+
+/** Get monthly token usage aggregated across all sessions */
+export const ANALYTICS_MONTHLY_USAGE = 'analytics:monthlyUsage';
+
+// =============================================================================
 // Search API Channels
 // =============================================================================
 

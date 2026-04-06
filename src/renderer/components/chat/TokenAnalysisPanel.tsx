@@ -19,8 +19,8 @@ import { formatTokensCompact } from '@shared/utils/tokenFormatting';
 import { ChevronDown, ChevronRight, Zap } from 'lucide-react';
 import { useShallow } from 'zustand/react/shallow';
 
-// Models available for comparison (excludes 'default' fallback)
-const COMPARISON_MODELS = Object.keys(MODEL_WEIGHTS).filter((k) => k !== 'default');
+// Default comparison models (excludes 'default' fallback) — overridden by config weights below
+const DEFAULT_COMPARISON_MODELS = Object.keys(MODEL_WEIGHTS).filter((k) => k !== 'default');
 
 /**
  * Derive the model family key used in MODEL_WEIGHTS from a raw model string.
@@ -116,12 +116,19 @@ export const TokenAnalysisPanel = React.memo(function TokenAnalysisPanel({
   const [expanded, setExpanded] = useState(false);
   const [compModel, setCompModel] = useState<string>('haiku');
 
-  const droidSettings = useStore(
+  const { droidSettings, configWeights } = useStore(
     useShallow((s) => {
       const td = tabId ? s.tabSessionData[tabId] : null;
-      return (td?.sessionDetail ?? s.sessionDetail)?.droidSettings ?? null;
+      return {
+        droidSettings: (td?.sessionDetail ?? s.sessionDetail)?.droidSettings ?? null,
+        configWeights: s.appConfig?.models?.weights,
+      };
     })
   );
+
+  const activeWeights = configWeights ?? MODEL_WEIGHTS;
+  const comparisonModels = Object.keys(activeWeights).filter((k) => k !== 'default');
+  const safeCompModels = comparisonModels.length > 0 ? comparisonModels : DEFAULT_COMPARISON_MODELS;
 
   if (!droidSettings?.model || !droidSettings.tokenUsage) return null;
 
@@ -137,7 +144,8 @@ export const TokenAnalysisPanel = React.memo(function TokenAnalysisPanel({
     outputTokens,
     cacheReadTokens,
     cacheCreationTokens,
-    currentFamily
+    currentFamily,
+    configWeights
   );
 
   const compWeighted = computeWeightedTokens(
@@ -145,15 +153,16 @@ export const TokenAnalysisPanel = React.memo(function TokenAnalysisPanel({
     outputTokens,
     cacheReadTokens,
     cacheCreationTokens,
-    compModel
+    compModel,
+    configWeights
   );
 
   const savings = currentWeighted - compWeighted;
   const savingsPct = currentWeighted > 0 ? (savings / currentWeighted) * 100 : 0;
   const isLighter = savings > 0;
 
-  const currentW = getModelWeights(currentFamily);
-  const compW = getModelWeights(compModel);
+  const currentW = getModelWeights(currentFamily, configWeights);
+  const compW = getModelWeights(compModel, configWeights);
 
   const maxInput = Math.max(inputTokens * currentW.input, inputTokens * compW.input);
   const maxOutput = Math.max(outputTokens * currentW.output, outputTokens * compW.output);
@@ -228,7 +237,7 @@ export const TokenAnalysisPanel = React.memo(function TokenAnalysisPanel({
                 color: 'var(--color-text-secondary)',
               }}
             >
-              {COMPARISON_MODELS.map((k) => (
+              {safeCompModels.map((k) => (
                 <option key={k} value={k}>
                   {modelLabel(k)}
                 </option>

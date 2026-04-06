@@ -13,6 +13,7 @@ import {
   AdvancedSection,
   ConnectionSection,
   GeneralSection,
+  ModelsSection,
   NotificationsSection,
   WorkspaceSection,
 } from './sections';
@@ -57,6 +58,8 @@ export const SettingsView = (): React.JSX.Element | null => {
     setOptimisticConfig,
     updateConfig,
   });
+
+  const modelWeights = config.models?.weights ?? {};
 
   // Loading state
   if (loading) {
@@ -150,6 +153,17 @@ export const SettingsView = (): React.JSX.Element | null => {
               onAddTrigger={handlers.handleAddTrigger}
               onUpdateTrigger={handlers.handleUpdateTrigger}
               onRemoveTrigger={handlers.handleRemoveTrigger}
+            />
+          )}
+
+          {activeSection === 'models' && (
+            <ModelsSection
+              weights={modelWeights}
+              onUpdateWeight={handlers.handleUpdateModelWeight}
+              onResetFamily={handlers.handleResetModelFamily}
+              onResetAll={handlers.handleResetAllModelWeights}
+              onAddModel={handlers.handleAddModel}
+              onRemoveModel={handlers.handleRemoveModel}
             />
           )}
 

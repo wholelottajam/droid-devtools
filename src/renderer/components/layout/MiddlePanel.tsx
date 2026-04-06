@@ -2,6 +2,7 @@ import React from 'react';
 
 import { ChatHistory } from '../chat/ChatHistory';
 import { SessionSettingsBadge } from '../chat/SessionSettingsBadge';
+import { SessionTokenSummary } from '../chat/SessionTokenSummary';
 import { TokenAnalysisPanel } from '../chat/TokenAnalysisPanel';
 import { SearchBar } from '../search/SearchBar';
 
@@ -15,6 +16,7 @@ export const MiddlePanel: React.FC<MiddlePanelProps> = ({ tabId }) => {
     <div className="relative flex h-full flex-col">
       <SearchBar tabId={tabId} />
       <SessionSettingsBadge tabId={tabId} />
+      <SessionTokenSummary tabId={tabId} />
       <TokenAnalysisPanel tabId={tabId} />
       <ChatHistory tabId={tabId} />
     </div>

@@ -1,9 +1,15 @@
 import { useMemo, useState } from 'react';
 
 import { isElectronMode } from '@renderer/api';
-import { Bell, HardDrive, Server, Settings, Wrench } from 'lucide-react';
+import { Bell, Cpu, HardDrive, Server, Settings, Wrench } from 'lucide-react';
 
-export type SettingsSection = 'general' | 'connection' | 'workspace' | 'notifications' | 'advanced';
+export type SettingsSection =
+  | 'general'
+  | 'connection'
+  | 'workspace'
+  | 'notifications'
+  | 'models'
+  | 'advanced';
 
 interface SettingsTabsProps {
   activeSection: SettingsSection;
@@ -22,6 +28,7 @@ const tabs: TabConfig[] = [
   { id: 'connection', label: 'Connection', icon: Server, electronOnly: true },
   { id: 'workspace', label: 'Workspaces', icon: HardDrive, electronOnly: true },
   { id: 'notifications', label: 'Notifications', icon: Bell },
+  { id: 'models', label: 'Models', icon: Cpu },
   { id: 'advanced', label: 'Advanced', icon: Wrench },
 ];
 

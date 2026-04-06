@@ -214,6 +214,16 @@ export interface HttpServerConfig {
   port: number;
 }
 
+export interface ModelWeightEntry {
+  input: number;
+  output: number;
+  cached: number;
+}
+
+export interface ModelsConfig {
+  weights: Record<string, ModelWeightEntry>;
+}
+
 export interface AppConfig {
   notifications: NotificationConfig;
   general: GeneralConfig;
@@ -221,6 +231,7 @@ export interface AppConfig {
   sessions: SessionsConfig;
   ssh: SshPersistConfig;
   httpServer: HttpServerConfig;
+  models: ModelsConfig;
 }
 
 // Config section keys for type-safe updates
@@ -232,6 +243,19 @@ export type ConfigSection = keyof AppConfig;
 
 // Default regex patterns for common non-actionable notifications
 const DEFAULT_IGNORED_REGEX = ["The user doesn't want to proceed with this tool use\\."];
+
+const DEFAULT_MODEL_WEIGHTS: ModelsConfig = {
+  weights: {
+    opus: { input: 5.0, output: 5.0, cached: 0.5 },
+    sonnet: { input: 1.0, output: 1.0, cached: 0.1 },
+    haiku: { input: 0.25, output: 0.25, cached: 0.03 },
+    'gpt-5-codex': { input: 2.0, output: 2.0, cached: 0.2 },
+    'gpt-5': { input: 3.0, output: 3.0, cached: 0.3 },
+    'gpt-4o': { input: 0.5, output: 0.5, cached: 0.05 },
+    'gpt-4': { input: 1.5, output: 1.5, cached: 0.15 },
+    default: { input: 1.0, output: 1.0, cached: 0.1 },
+  },
+};
 
 const DEFAULT_CONFIG: AppConfig = {
   notifications: {
@@ -272,6 +296,7 @@ const DEFAULT_CONFIG: AppConfig = {
     enabled: false,
     port: 3456,
   },
+  models: DEFAULT_MODEL_WEIGHTS,
 };
 
 function normalizeConfiguredFactoryRootPath(value: unknown): string | null {
@@ -462,6 +487,12 @@ export class ConfigManager {
       httpServer: {
         ...DEFAULT_CONFIG.httpServer,
         ...(loaded.httpServer ?? {}),
+      },
+      models: {
+        weights: {
+          ...DEFAULT_MODEL_WEIGHTS.weights,
+          ...(loaded.models?.weights ?? {}),
+        },
       },
     };
   }

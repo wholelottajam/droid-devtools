@@ -315,4 +315,9 @@ export interface AppConfig {
     /** Port for the HTTP server (default 3456) */
     port: number;
   };
+  /** Model weight multiplier configuration */
+  models?: {
+    /** Per-model-family weight multipliers. Key is model family (lowercase). */
+    weights: Record<string, { input: number; output: number; cached: number }>;
+  };
 }

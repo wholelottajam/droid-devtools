@@ -34,23 +34,33 @@ export const MODEL_WEIGHTS: Record<string, ModelWeights> = {
 /**
  * Look up weights for a model family string.
  * Falls back to 'default' if the family is not found.
+ * @param family - Model family key (e.g. "sonnet", "opus")
+ * @param configWeights - Optional config-overridden weights (from AppConfig.models.weights)
  */
-export function getModelWeights(family: string): ModelWeights {
+export function getModelWeights(
+  family: string,
+  configWeights?: Record<string, ModelWeights>
+): ModelWeights {
   const key = family.toLowerCase();
+  if (configWeights) {
+    return configWeights[key] ?? configWeights.default ?? MODEL_WEIGHTS.default;
+  }
   return MODEL_WEIGHTS[key] ?? MODEL_WEIGHTS.default;
 }
 
 /**
  * Compute total weighted tokens for a given token breakdown.
+ * @param configWeights - Optional config-overridden weights (from AppConfig.models.weights)
  */
 export function computeWeightedTokens(
   inputTokens: number,
   outputTokens: number,
   cacheReadTokens: number,
   cacheCreationTokens: number,
-  family: string
+  family: string,
+  configWeights?: Record<string, ModelWeights>
 ): number {
-  const weights = getModelWeights(family);
+  const weights = getModelWeights(family, configWeights);
   return (
     inputTokens * weights.input +
     outputTokens * weights.output +

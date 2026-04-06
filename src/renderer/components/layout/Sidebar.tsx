@@ -17,6 +17,7 @@ import { useShallow } from 'zustand/react/shallow';
 
 import { DateGroupedSessions } from '../sidebar/DateGroupedSessions';
 import { DroidList } from '../sidebar/DroidList';
+import { ProjectTokenSummary } from '../sidebar/ProjectTokenSummary';
 
 import { SidebarHeader } from './SidebarHeader';
 
@@ -101,6 +102,9 @@ export const Sidebar = (): React.JSX.Element | null => {
     >
       {/* Sidebar header with project dropdown */}
       <SidebarHeader />
+
+      {/* Project token summary */}
+      <ProjectTokenSummary />
 
       {/* Date-grouped session list */}
       <div className="flex-1 overflow-hidden">

@@ -11,6 +11,7 @@ import React, { useEffect, useRef, useState } from 'react';
 import { createPortal } from 'react-dom';
 
 import { COLOR_TEXT_MUTED, COLOR_TEXT_SECONDARY } from '@renderer/constants/cssVariables';
+import { useStore } from '@renderer/store';
 import { computeWeightedTokens } from '@shared/constants/modelWeights';
 import { getModelColorClass, getProviderLabel } from '@shared/utils/modelParser';
 import {
@@ -258,6 +259,7 @@ export const TokenUsageDisplay = ({
   phaseNumber,
   totalPhases,
 }: Readonly<TokenUsageDisplayProps>): React.JSX.Element => {
+  const configWeights = useStore((s) => s.appConfig?.models?.weights);
   const totalTokens = inputTokens + cacheReadTokens + cacheCreationTokens + outputTokens;
 
   // Cache hit rate: cacheRead / (cacheRead + freshInput)
@@ -273,7 +275,8 @@ export const TokenUsageDisplay = ({
           outputTokens,
           cacheReadTokens,
           cacheCreationTokens,
-          String(modelFamily)
+          String(modelFamily),
+          configWeights
         )
       : null;
   const formattedTotal = formatTokens(totalTokens);

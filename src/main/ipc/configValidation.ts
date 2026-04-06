@@ -10,6 +10,7 @@ import type {
   DisplayConfig,
   GeneralConfig,
   HttpServerConfig,
+  ModelsConfig,
   NotificationConfig,
   NotificationTrigger,
   SshPersistConfig,
@@ -34,6 +35,7 @@ export type ConfigUpdateValidationResult =
   | ValidationSuccess<'display'>
   | ValidationSuccess<'httpServer'>
   | ValidationSuccess<'ssh'>
+  | ValidationSuccess<'models'>
   | ValidationFailure;
 
 const VALID_SECTIONS = new Set<ConfigSection>([
@@ -42,6 +44,7 @@ const VALID_SECTIONS = new Set<ConfigSection>([
   'display',
   'httpServer',
   'ssh',
+  'models',
 ]);
 const MAX_SNOOZE_MINUTES = 24 * 60;
 
@@ -432,6 +435,54 @@ function validateSshSection(data: unknown): ValidationSuccess<'ssh'> | Validatio
   return { valid: true, section: 'ssh', data: result };
 }
 
+function validateModelsSection(data: unknown): ValidationSuccess<'models'> | ValidationFailure {
+  if (!isPlainObject(data)) {
+    return { valid: false, error: 'models update must be an object' };
+  }
+
+  const result: Partial<ModelsConfig> = {};
+
+  for (const [key, value] of Object.entries(data)) {
+    if (key !== 'weights') {
+      return { valid: false, error: `models.${key} is not a valid setting` };
+    }
+
+    if (!isPlainObject(value)) {
+      return { valid: false, error: 'models.weights must be an object' };
+    }
+
+    const weights: Record<string, { input: number; output: number; cached: number }> = {};
+    for (const [family, entry] of Object.entries(value)) {
+      if (!isPlainObject(entry)) {
+        return { valid: false, error: `models.weights.${family} must be an object` };
+      }
+      const { input, output, cached } = entry;
+      if (!isFiniteNumber(input) || input <= 0) {
+        return {
+          valid: false,
+          error: `models.weights.${family}.input must be a positive finite number`,
+        };
+      }
+      if (!isFiniteNumber(output) || output <= 0) {
+        return {
+          valid: false,
+          error: `models.weights.${family}.output must be a positive finite number`,
+        };
+      }
+      if (!isFiniteNumber(cached) || cached <= 0) {
+        return {
+          valid: false,
+          error: `models.weights.${family}.cached must be a positive finite number`,
+        };
+      }
+      weights[family] = { input, output, cached };
+    }
+    result.weights = weights;
+  }
+
+  return { valid: true, section: 'models', data: result };
+}
+
 export function validateConfigUpdatePayload(
   section: unknown,
   data: unknown
@@ -439,7 +490,7 @@ export function validateConfigUpdatePayload(
   if (typeof section !== 'string' || !VALID_SECTIONS.has(section as ConfigSection)) {
     return {
       valid: false,
-      error: 'Section must be one of: notifications, general, display, httpServer, ssh',
+      error: 'Section must be one of: notifications, general, display, httpServer, ssh, models',
     };
   }
 
@@ -454,6 +505,8 @@ export function validateConfigUpdatePayload(
       return validateHttpServerSection(data);
     case 'ssh':
       return validateSshSection(data);
+    case 'models':
+      return validateModelsSection(data);
     default:
       return { valid: false, error: 'Invalid section' };
   }

@@ -7,6 +7,7 @@ import { useCallback, useRef } from 'react';
 
 import { api } from '@renderer/api';
 import { useStore } from '@renderer/store';
+import { MODEL_WEIGHTS } from '@shared/constants/modelWeights';
 
 import type { RepositoryDropdownItem } from './useSettingsConfig';
 import type { AppConfig, NotificationTrigger } from '@renderer/types/data';
@@ -25,6 +26,8 @@ interface UseSettingsHandlersProps {
     data: Partial<AppConfig[keyof AppConfig]>
   ) => Promise<void>;
 }
+
+type ModelWeightField = 'input' | 'output' | 'cached';
 
 interface SettingsHandlers {
   // General handlers
@@ -46,6 +49,13 @@ interface SettingsHandlers {
 
   // Display handlers
   handleDisplayToggle: (key: keyof AppConfig['display'], value: boolean) => void;
+
+  // Model weight handlers
+  handleUpdateModelWeight: (family: string, field: ModelWeightField, value: number) => void;
+  handleResetModelFamily: (family: string) => void;
+  handleResetAllModelWeights: () => void;
+  handleAddModel: (family: string) => void;
+  handleRemoveModel: (family: string) => void;
 
   // Advanced handlers
   handleResetToDefaults: () => Promise<void>;
@@ -239,6 +249,53 @@ export function useSettingsHandlers({
     [updateConfig]
   );
 
+  // Model weight handlers
+  const handleUpdateModelWeight = useCallback(
+    (family: string, field: ModelWeightField, value: number) => {
+      const current = configRef.current?.models?.weights ?? {};
+      void updateConfig('models', {
+        weights: { ...current, [family]: { ...(current[family] ?? {}), [field]: value } },
+      });
+    },
+    [updateConfig]
+  );
+
+  const handleResetModelFamily = useCallback(
+    (family: string) => {
+      const current = configRef.current?.models?.weights ?? {};
+      const defaults = MODEL_WEIGHTS[family] ?? MODEL_WEIGHTS.default;
+      void updateConfig('models', {
+        weights: { ...current, [family]: defaults },
+      });
+    },
+    [updateConfig]
+  );
+
+  const handleResetAllModelWeights = useCallback(() => {
+    void updateConfig('models', { weights: MODEL_WEIGHTS });
+  }, [updateConfig]);
+
+  const handleAddModel = useCallback(
+    (family: string) => {
+      const current = configRef.current?.models?.weights ?? {};
+      const defaults = MODEL_WEIGHTS.sonnet;
+      void updateConfig('models', {
+        weights: { ...current, [family]: defaults },
+      });
+    },
+    [updateConfig]
+  );
+
+  const handleRemoveModel = useCallback(
+    (family: string) => {
+      const current = configRef.current?.models?.weights ?? {};
+      const updated = { ...current };
+      delete updated[family];
+      void updateConfig('models', { weights: updated });
+    },
+    [updateConfig]
+  );
+
   // Advanced handlers
   const handleResetToDefaults = useCallback(async () => {
     if (!confirm('Are you sure you want to reset all settings to defaults?')) {
@@ -385,6 +442,11 @@ export function useSettingsHandlers({
     handleUpdateTrigger,
     handleRemoveTrigger,
     handleDisplayToggle,
+    handleUpdateModelWeight,
+    handleResetModelFamily,
+    handleResetAllModelWeights,
+    handleAddModel,
+    handleRemoveModel,
     handleResetToDefaults,
     handleExportConfig,
     handleImportConfig,
