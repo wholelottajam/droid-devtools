@@ -79,7 +79,7 @@ pnpm install
 ```bash
 pnpm dev          # dev mode with hot reload
 pnpm build        # compile TypeScript + bundle
-pnpm start        # run the compiled app (no dev tools)
+pnpm preview      # run the compiled app (no dev tools)
 ```
 
 To build a distributable installer (output goes to `release/`):
