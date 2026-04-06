@@ -12,15 +12,15 @@
 
 ## Background
 
-This project is a fork of [claude-devtools](https://github.com/matt1398/claude-devtools) by Matt1398, which was built to inspect Claude Code sessions. claude-devtools does an excellent job of turning raw JSONL logs into a readable execution trace — tool calls, context breakdowns, subagent trees, compaction events — and we didn't want to rebuild that from scratch.
+This project is a fork of [claude-devtools](https://github.com/matt1398/claude-devtools) by Matt1398, which was built to inspect Claude Code sessions. claude-devtools does an excellent job of turning raw JSONL logs into a readable execution trace — tool calls, context breakdowns, subagent trees, compaction events — and rebuilding that foundation from scratch made little sense.
 
-We use **Droid/Factory CLI** instead of Claude Code directly. Factory wraps Claude and writes its own session logs to `~/.factory/sessions/` in a compatible JSONL format. claude-devtools couldn't read these out of the box, and we had specific analysis needs around token economics that the original didn't cover.
+The Droid/Factory CLI is a separate tool that wraps Claude and writes its own session logs to `~/.factory/sessions/` in a compatible JSONL format. claude-devtools couldn't read these out of the box, and the original lacked the token analytics needed when working across multiple models at scale.
 
-So we adapted it.
+This fork adapts claude-devtools for that workflow.
 
 ---
 
-## What We Changed
+## What's Different
 
 ### Droid/Factory CLI support
 
@@ -28,13 +28,13 @@ Reads session data from `~/.factory/sessions/` instead of `~/.claude/`. Path enc
 
 ### Token analytics with model weights
 
-Factory sessions frequently span multiple Claude models. Raw token counts are misleading when a cheap model and an expensive one both register as "1 token." We added:
+Factory sessions frequently span multiple Claude models. Raw token counts are misleading when a cheaper and a more capable model both register as "1 token." This fork adds:
 
 - **Model weight multipliers** — assign a relative weight to each model so token comparisons reflect actual cost ratios
 - **Session and project summaries** — weighted token totals per session, rolled up to project level
-- **Monthly aggregation** — view token consumption month by month, across all projects, with weighted and unweighted breakdowns
+- **Monthly aggregation** — token consumption month by month, across all projects, with weighted and unweighted breakdowns
 
-This gives you a real picture of where compute is going over time, not just per-session raw numbers.
+The result is an accurate picture of where compute is going over time — not just per-session raw numbers.
 
 ---
 
