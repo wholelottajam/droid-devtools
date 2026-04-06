@@ -78,7 +78,7 @@ export const SessionSettingsBadge = React.memo(function SessionSettingsBadge({
     droidSettings.reasoningEffort &&
     droidSettings.reasoningEffort !== 'none' &&
     droidSettings.reasoningEffort !== '';
-  const hasTags = droidSettings.tags.length > 0;
+  const hasTags = (droidSettings.tags?.length ?? 0) > 0;
 
   if (!modelLabel && !hasTags && !hasReasoningEffort) return null;
 
@@ -120,7 +120,7 @@ export const SessionSettingsBadge = React.memo(function SessionSettingsBadge({
       )}
 
       {/* Tags */}
-      {droidSettings.tags.map((tag) => (
+      {(droidSettings.tags ?? []).map((tag) => (
         <span
           key={tag.name}
           className="rounded px-1.5 py-0.5"

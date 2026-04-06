@@ -154,7 +154,7 @@ export interface DroidSessionSettings {
   autonomyMode: string;
   specModeModel?: string;
   specModeReasoningEffort?: string;
-  tags: { name: string }[];
+  tags?: { name: string }[];
   providerLock?: string;
   providerLockTimestamp?: string;
   apiProviderLock?: string;
