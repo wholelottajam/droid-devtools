@@ -186,8 +186,12 @@ export const AdvancedSection = ({
             Version {version || '...'}
           </p>
           <p className="mt-2 text-xs leading-relaxed" style={{ color: 'var(--color-text-muted)' }}>
-            Visualize and analyze Claude Code session executions with interactive waterfall charts
-            and detailed insights.
+            Visualize and analyze Droid/Factory CLI session executions with interactive waterfall
+            charts and detailed insights.
+          </p>
+          <p className="mt-1 text-xs" style={{ color: 'var(--color-text-muted)' }}>
+            Based on <span style={{ color: 'var(--color-text-secondary)' }}>claude-devtools</span>{' '}
+            by Matt1398 (MIT)
           </p>
         </div>
       </div>

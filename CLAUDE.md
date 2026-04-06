@@ -1,6 +1,6 @@
-# claude-devtools
+# droid-devtools
 
-Electron app that visualizes Claude Code session execution
+Electron app that visualizes Droid/Factory CLI session execution
 
 ## Tech Stack
 Electron 28.x, React 18.x, TypeScript 5.x, Tailwind CSS 3.x, Zustand 4.x
@@ -31,8 +31,8 @@ Use path aliases for imports:
 - `@preload/*` → `src/preload/*`
 
 ## Data Sources
-~/.claude/projects/{encoded-path}/*.jsonl - Session files
-~/.claude/todos/{sessionId}.json - Todo data
+~/.factory/sessions/{encoded-path}/*.jsonl - Session files
+~/.factory/todos/{sessionId}.json - Todo data
 
 Path encoding: `/Users/name/project` → `-Users-name-project`
 

@@ -1,5 +1,5 @@
 /**
- * Main process entry point for claude-devtools.
+ * Main process entry point for droid-devtools.
  *
  * Responsibilities:
  * - Initialize Electron app and main window
@@ -448,7 +448,7 @@ function createWindow(): void {
     backgroundColor: '#1a1a1a',
     ...(useNativeTitleBar ? {} : { titleBarStyle: 'hidden' as const }),
     ...(isMac && { trafficLightPosition: getTrafficLightPositionForZoom(1) }),
-    title: 'claude-devtools',
+    title: 'droid-devtools',
   });
 
   // Load the renderer

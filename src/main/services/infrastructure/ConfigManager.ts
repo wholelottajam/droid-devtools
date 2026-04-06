@@ -1,5 +1,5 @@
 /**
- * ConfigManager service - Manages app configuration stored at ~/.claude/claude-devtools-config.json.
+ * ConfigManager service - Manages app configuration stored at ~/.factory/droid-devtools-config.json.
  *
  * Responsibilities:
  * - Load configuration from disk on initialization
@@ -433,7 +433,9 @@ export class ConfigManager {
       ...DEFAULT_CONFIG.general,
       ...(loaded.general ?? {}),
     };
-    mergedGeneral.factoryRootPath = normalizeConfiguredFactoryRootPath(mergedGeneral.factoryRootPath);
+    mergedGeneral.factoryRootPath = normalizeConfiguredFactoryRootPath(
+      mergedGeneral.factoryRootPath
+    );
 
     // Merge triggers: preserve existing triggers, add missing builtin ones
     const mergedTriggers = TriggerManager.mergeTriggers(loadedTriggers, DEFAULT_TRIGGERS);

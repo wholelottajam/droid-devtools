@@ -1,11 +1,11 @@
 # =============================================================================
-# claude-devtools standalone Docker image
+# droid-devtools standalone Docker image
 #
 # Runs the HTTP server without Electron, serving the full UI over HTTP.
-# Mount your ~/.claude directory to make session data available.
+# Mount your ~/.factory directory to make session data available.
 #
-# Build:  docker build -t claude-devtools .
-# Run:    docker run -p 3456:3456 -v ~/.claude:/data/.claude:ro claude-devtools
+# Build:  docker build -t droid-devtools .
+# Run:    docker run -p 3456:3456 -v ~/.factory:/data/.factory:ro droid-devtools
 # =============================================================================
 
 FROM node:20-slim AS builder

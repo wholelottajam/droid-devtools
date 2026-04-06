@@ -1,5 +1,5 @@
 /**
- * Standalone (non-Electron) entry point for claude-devtools.
+ * Standalone (non-Electron) entry point for droid-devtools.
  *
  * Runs the HTTP server + API without Electron, suitable for Docker
  * or any headless/remote environment. The renderer is served as

@@ -7,7 +7,7 @@ import { useStore } from '../store';
 type Theme = 'dark' | 'light' | 'system';
 type ResolvedTheme = 'dark' | 'light';
 
-const THEME_CACHE_KEY = 'claude-devtools-theme-cache';
+const THEME_CACHE_KEY = 'droid-devtools-theme-cache';
 
 /**
  * Hook to manage theme state and application.
