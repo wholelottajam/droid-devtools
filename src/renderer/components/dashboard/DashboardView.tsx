@@ -267,15 +267,21 @@ const ProjectsGrid = ({
   searchQuery,
   maxProjects = 12,
 }: Readonly<ProjectsGridProps>): React.JSX.Element => {
-  const { repositoryGroups, repositoryGroupsLoading, fetchRepositoryGroups, selectRepository } =
-    useStore(
-      useShallow((s) => ({
-        repositoryGroups: s.repositoryGroups,
-        repositoryGroupsLoading: s.repositoryGroupsLoading,
-        fetchRepositoryGroups: s.fetchRepositoryGroups,
-        selectRepository: s.selectRepository,
-      }))
-    );
+  const {
+    repositoryGroups,
+    repositoryGroupsLoading,
+    fetchRepositoryGroups,
+    selectRepository,
+    hiddenProjectIds,
+  } = useStore(
+    useShallow((s) => ({
+      repositoryGroups: s.repositoryGroups,
+      repositoryGroupsLoading: s.repositoryGroupsLoading,
+      fetchRepositoryGroups: s.fetchRepositoryGroups,
+      selectRepository: s.selectRepository,
+      hiddenProjectIds: s.hiddenProjectIds,
+    }))
+  );
 
   useEffect(() => {
     if (repositoryGroups.length === 0) {
@@ -283,14 +289,17 @@ const ProjectsGrid = ({
     }
   }, [repositoryGroups.length, fetchRepositoryGroups]);
 
-  // Filter projects based on search query
+  // Filter projects based on search query and hidden state
   const filteredRepos = useMemo(() => {
+    const hiddenSet = new Set(hiddenProjectIds);
+    const visible = repositoryGroups.filter((repo) => !hiddenSet.has(repo.id));
+
     if (!searchQuery.trim()) {
-      return repositoryGroups.slice(0, maxProjects);
+      return visible.slice(0, maxProjects);
     }
 
     const query = searchQuery.toLowerCase().trim();
-    return repositoryGroups
+    return visible
       .filter((repo) => {
         // Match by name
         if (repo.name.toLowerCase().includes(query)) return true;
@@ -300,7 +309,7 @@ const ProjectsGrid = ({
         return false;
       })
       .slice(0, maxProjects);
-  }, [repositoryGroups, searchQuery, maxProjects]);
+  }, [repositoryGroups, hiddenProjectIds, searchQuery, maxProjects]);
 
   if (repositoryGroupsLoading) {
     // Organic widths per card — no repeating stamp
