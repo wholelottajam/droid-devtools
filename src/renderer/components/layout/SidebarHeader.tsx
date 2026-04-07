@@ -12,7 +12,6 @@
  */
 
 import { useEffect, useRef, useState } from 'react';
-import { createPortal } from 'react-dom';
 
 import { isElectronMode } from '@renderer/api';
 import { HEADER_ROW1_HEIGHT, HEADER_ROW2_HEIGHT } from '@renderer/constants/layout';
@@ -149,7 +148,7 @@ interface ProjectDropdownItemProps {
   isSelected: boolean;
   isHidden?: boolean;
   onSelect: () => void;
-  onContextMenu?: (e: React.MouseEvent) => void;
+  onToggleHide: () => void;
 }
 
 const ProjectDropdownItem = ({
@@ -159,47 +158,60 @@ const ProjectDropdownItem = ({
   isSelected,
   isHidden,
   onSelect,
-  onContextMenu,
+  onToggleHide,
 }: Readonly<ProjectDropdownItemProps>): React.JSX.Element => {
   const [isHovered, setIsHovered] = useState(false);
 
-  const buttonStyle: React.CSSProperties = isSelected
-    ? { backgroundColor: 'var(--color-surface-raised)', color: 'var(--color-text)' }
+  const rowStyle: React.CSSProperties = isSelected
+    ? { backgroundColor: 'var(--color-surface-raised)' }
     : {
         backgroundColor: isHovered ? 'var(--color-surface-raised)' : 'transparent',
-        opacity: isHovered ? (isHidden ? 0.35 : 0.5) : isHidden ? 0.45 : 1,
+        opacity: isHidden && !isHovered ? 0.45 : 1,
       };
 
   return (
-    <button
-      onClick={onSelect}
-      onContextMenu={onContextMenu}
+    <div
+      className="group flex w-full items-center gap-2 px-3 py-2 transition-colors"
+      style={rowStyle}
       onMouseEnter={() => setIsHovered(true)}
       onMouseLeave={() => setIsHovered(false)}
-      className="flex w-full items-center gap-2 px-3 py-2 text-left transition-colors"
-      style={buttonStyle}
     >
-      <div className="min-w-0 flex-1">
-        <span
-          className={`block truncate text-sm ${isSelected ? 'font-medium' : ''}`}
-          style={{ color: isSelected ? 'var(--color-text)' : 'var(--color-text-muted)' }}
-        >
-          {name}
-        </span>
-        {path && (
-          <span className="block truncate text-[10px]" style={{ color: 'var(--color-text-muted)' }}>
-            {path}
+      <button onClick={onSelect} className="flex min-w-0 flex-1 items-center gap-2 text-left">
+        <div className="min-w-0 flex-1">
+          <span
+            className={`block truncate text-sm ${isSelected ? 'font-medium' : ''}`}
+            style={{ color: isSelected ? 'var(--color-text)' : 'var(--color-text-muted)' }}
+          >
+            {name}
           </span>
-        )}
-      </div>
-      <span className="shrink-0 text-[10px]" style={{ color: 'var(--color-text-muted)' }}>
-        {sessionCount}
-      </span>
-      {isHidden && !isSelected && (
-        <EyeOff className="size-3 shrink-0" style={{ color: 'var(--color-text-muted)' }} />
-      )}
-      {isSelected && <Check className="size-3.5 shrink-0 text-indigo-400" />}
-    </button>
+          {path && (
+            <span
+              className="block truncate text-[10px]"
+              style={{ color: 'var(--color-text-muted)' }}
+            >
+              {path}
+            </span>
+          )}
+        </div>
+        <span className="shrink-0 text-[10px]" style={{ color: 'var(--color-text-muted)' }}>
+          {sessionCount}
+        </span>
+        {isSelected && <Check className="size-3.5 shrink-0 text-indigo-400" />}
+      </button>
+
+      {/* Hide/unhide button — always visible for hidden projects, hover-only otherwise */}
+      <button
+        onClick={(e) => {
+          e.stopPropagation();
+          onToggleHide();
+        }}
+        title={isHidden ? 'Unhide project' : 'Hide project'}
+        className={`shrink-0 rounded p-0.5 transition-opacity ${isHidden ? 'opacity-60' : 'opacity-0 hover:!opacity-80 group-hover:opacity-40'}`}
+        style={{ color: 'var(--color-text-muted)' }}
+      >
+        {isHidden ? <Eye className="size-3.5" /> : <EyeOff className="size-3.5" />}
+      </button>
+    </div>
   );
 };
 
@@ -244,13 +256,6 @@ export const SidebarHeader = (): React.JSX.Element => {
       toggleShowHiddenProjects: s.toggleShowHiddenProjects,
     }))
   );
-
-  const [projectContextMenu, setProjectContextMenu] = useState<{
-    x: number;
-    y: number;
-    projectId: string;
-    isHidden: boolean;
-  } | null>(null);
 
   // Fetch data on mount based on view mode
   useEffect(() => {
@@ -465,15 +470,7 @@ export const SidebarHeader = (): React.JSX.Element => {
                           ? handleSelectRepo(item.id)
                           : handleSelectProject(item.id)
                       }
-                      onContextMenu={(e) => {
-                        e.preventDefault();
-                        setProjectContextMenu({
-                          x: e.clientX,
-                          y: e.clientY,
-                          projectId: item.id,
-                          isHidden: hiddenSet.has(item.id),
-                        });
-                      }}
+                      onToggleHide={() => void toggleHideProject(item.id)}
                     />
                   );
                 })
@@ -608,55 +605,6 @@ export const SidebarHeader = (): React.JSX.Element => {
           )}
         </div>
       )}
-
-      {/* Project context menu */}
-      {projectContextMenu &&
-        createPortal(
-          <>
-            <div
-              role="presentation"
-              className="fixed inset-0 z-40"
-              onClick={() => setProjectContextMenu(null)}
-              onContextMenu={(e) => {
-                e.preventDefault();
-                setProjectContextMenu(null);
-              }}
-            />
-            <div
-              className="fixed z-50 min-w-[160px] rounded-lg py-1 shadow-xl"
-              style={{
-                left: projectContextMenu.x,
-                top: projectContextMenu.y,
-                backgroundColor: 'var(--color-surface-overlay)',
-                borderWidth: '1px',
-                borderStyle: 'solid',
-                borderColor: 'var(--color-border-emphasis)',
-              }}
-            >
-              <button
-                onClick={() => {
-                  void toggleHideProject(projectContextMenu.projectId);
-                  setProjectContextMenu(null);
-                }}
-                className="flex w-full items-center gap-2.5 px-3 py-1.5 text-left text-sm transition-colors hover:bg-white/5"
-                style={{ color: 'var(--color-text-secondary)' }}
-              >
-                {projectContextMenu.isHidden ? (
-                  <>
-                    <Eye className="size-3.5 shrink-0" />
-                    Unhide project
-                  </>
-                ) : (
-                  <>
-                    <EyeOff className="size-3.5 shrink-0" />
-                    Hide project
-                  </>
-                )}
-              </button>
-            </div>
-          </>,
-          document.body
-        )}
     </div>
   );
 };
