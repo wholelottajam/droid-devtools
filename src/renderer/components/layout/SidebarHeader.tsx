@@ -12,12 +12,13 @@
  */
 
 import { useEffect, useRef, useState } from 'react';
+import { createPortal } from 'react-dom';
 
 import { isElectronMode } from '@renderer/api';
 import { HEADER_ROW1_HEIGHT, HEADER_ROW2_HEIGHT } from '@renderer/constants/layout';
 import { useStore } from '@renderer/store';
 import { formatShortcut, truncateMiddle } from '@renderer/utils/stringUtils';
-import { Check, ChevronDown, GitBranch, PanelLeft } from 'lucide-react';
+import { Check, ChevronDown, Eye, EyeOff, GitBranch, PanelLeft } from 'lucide-react';
 import { useShallow } from 'zustand/react/shallow';
 
 import { WorktreeBadge } from '../common/WorktreeBadge';
@@ -146,7 +147,9 @@ interface ProjectDropdownItemProps {
   path?: string;
   sessionCount: number;
   isSelected: boolean;
+  isHidden?: boolean;
   onSelect: () => void;
+  onContextMenu?: (e: React.MouseEvent) => void;
 }
 
 const ProjectDropdownItem = ({
@@ -154,7 +157,9 @@ const ProjectDropdownItem = ({
   path,
   sessionCount,
   isSelected,
+  isHidden,
   onSelect,
+  onContextMenu,
 }: Readonly<ProjectDropdownItemProps>): React.JSX.Element => {
   const [isHovered, setIsHovered] = useState(false);
 
@@ -162,12 +167,13 @@ const ProjectDropdownItem = ({
     ? { backgroundColor: 'var(--color-surface-raised)', color: 'var(--color-text)' }
     : {
         backgroundColor: isHovered ? 'var(--color-surface-raised)' : 'transparent',
-        opacity: isHovered ? 0.5 : 1,
+        opacity: isHovered ? (isHidden ? 0.35 : 0.5) : isHidden ? 0.45 : 1,
       };
 
   return (
     <button
       onClick={onSelect}
+      onContextMenu={onContextMenu}
       onMouseEnter={() => setIsHovered(true)}
       onMouseLeave={() => setIsHovered(false)}
       className="flex w-full items-center gap-2 px-3 py-2 text-left transition-colors"
@@ -189,6 +195,9 @@ const ProjectDropdownItem = ({
       <span className="shrink-0 text-[10px]" style={{ color: 'var(--color-text-muted)' }}>
         {sessionCount}
       </span>
+      {isHidden && !isSelected && (
+        <EyeOff className="size-3 shrink-0" style={{ color: 'var(--color-text-muted)' }} />
+      )}
       {isSelected && <Check className="size-3.5 shrink-0 text-indigo-400" />}
     </button>
   );
@@ -211,6 +220,10 @@ export const SidebarHeader = (): React.JSX.Element => {
     fetchRepositoryGroups,
     fetchProjects,
     toggleSidebar,
+    hiddenProjectIds,
+    showHiddenProjects,
+    toggleHideProject,
+    toggleShowHiddenProjects,
   } = useStore(
     useShallow((s) => ({
       repositoryGroups: s.repositoryGroups,
@@ -225,8 +238,19 @@ export const SidebarHeader = (): React.JSX.Element => {
       fetchRepositoryGroups: s.fetchRepositoryGroups,
       fetchProjects: s.fetchProjects,
       toggleSidebar: s.toggleSidebar,
+      hiddenProjectIds: s.hiddenProjectIds,
+      showHiddenProjects: s.showHiddenProjects,
+      toggleHideProject: s.toggleHideProject,
+      toggleShowHiddenProjects: s.toggleShowHiddenProjects,
     }))
   );
+
+  const [projectContextMenu, setProjectContextMenu] = useState<{
+    x: number;
+    y: number;
+    projectId: string;
+    isHidden: boolean;
+  } | null>(null);
 
   // Fetch data on mount based on view mode
   useEffect(() => {
@@ -313,11 +337,21 @@ export const SidebarHeader = (): React.JSX.Element => {
     setIsProjectDropdownOpen(false);
   };
 
-  // Items for project dropdown - filter out repositories/projects with 0 sessions
-  const projectItems =
+  const hiddenSet = new Set(hiddenProjectIds);
+
+  // All projects/repos with sessions (before hiding filter)
+  const allProjectItems =
     viewMode === 'grouped'
       ? repositoryGroups.filter((r) => r.totalSessions > 0)
       : projects.filter((p) => p.sessions.length > 0);
+
+  // Count how many are hidden
+  const hiddenCount = allProjectItems.filter((item) => hiddenSet.has(item.id)).length;
+
+  // Items for project dropdown - filter out hidden ones unless showHiddenProjects is true
+  const projectItems = showHiddenProjects
+    ? allProjectItems
+    : allProjectItems.filter((item) => !hiddenSet.has(item.id));
 
   const [isCollapseHovered, setIsCollapseHovered] = useState(false);
 
@@ -425,14 +459,47 @@ export const SidebarHeader = (): React.JSX.Element => {
                       path={itemPath}
                       sessionCount={itemSessions}
                       isSelected={isSelected}
+                      isHidden={hiddenSet.has(item.id)}
                       onSelect={() =>
                         viewMode === 'grouped'
                           ? handleSelectRepo(item.id)
                           : handleSelectProject(item.id)
                       }
+                      onContextMenu={(e) => {
+                        e.preventDefault();
+                        setProjectContextMenu({
+                          x: e.clientX,
+                          y: e.clientY,
+                          projectId: item.id,
+                          isHidden: hiddenSet.has(item.id),
+                        });
+                      }}
                     />
                   );
                 })
+              )}
+
+              {/* Show/hide hidden projects toggle */}
+              {hiddenCount > 0 && (
+                <button
+                  onClick={toggleShowHiddenProjects}
+                  className="flex w-full items-center gap-2 px-3 py-2 text-left text-[11px] transition-opacity hover:opacity-80"
+                  style={{
+                    borderTopWidth: '1px',
+                    borderTopStyle: 'solid',
+                    borderTopColor: 'var(--color-border)',
+                    color: 'var(--color-text-muted)',
+                  }}
+                >
+                  {showHiddenProjects ? (
+                    <EyeOff className="size-3 shrink-0" />
+                  ) : (
+                    <Eye className="size-3 shrink-0" />
+                  )}
+                  {showHiddenProjects
+                    ? 'Hide hidden projects'
+                    : `Show ${hiddenCount} hidden project${hiddenCount > 1 ? 's' : ''}`}
+                </button>
               )}
             </div>
           </>
@@ -541,6 +608,55 @@ export const SidebarHeader = (): React.JSX.Element => {
           )}
         </div>
       )}
+
+      {/* Project context menu */}
+      {projectContextMenu &&
+        createPortal(
+          <>
+            <div
+              role="presentation"
+              className="fixed inset-0 z-40"
+              onClick={() => setProjectContextMenu(null)}
+              onContextMenu={(e) => {
+                e.preventDefault();
+                setProjectContextMenu(null);
+              }}
+            />
+            <div
+              className="fixed z-50 min-w-[160px] rounded-lg py-1 shadow-xl"
+              style={{
+                left: projectContextMenu.x,
+                top: projectContextMenu.y,
+                backgroundColor: 'var(--color-surface-overlay)',
+                borderWidth: '1px',
+                borderStyle: 'solid',
+                borderColor: 'var(--color-border-emphasis)',
+              }}
+            >
+              <button
+                onClick={() => {
+                  void toggleHideProject(projectContextMenu.projectId);
+                  setProjectContextMenu(null);
+                }}
+                className="flex w-full items-center gap-2.5 px-3 py-1.5 text-left text-sm transition-colors hover:bg-white/5"
+                style={{ color: 'var(--color-text-secondary)' }}
+              >
+                {projectContextMenu.isHidden ? (
+                  <>
+                    <Eye className="size-3.5 shrink-0" />
+                    Unhide project
+                  </>
+                ) : (
+                  <>
+                    <EyeOff className="size-3.5 shrink-0" />
+                    Hide project
+                  </>
+                )}
+              </button>
+            </div>
+          </>,
+          document.body
+        )}
     </div>
   );
 };

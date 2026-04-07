@@ -10,7 +10,6 @@ import type {
   AgentsMdFileInfo,
   AppConfig,
   ConfigAPI,
-  ContextInfo,
   ConversationGroup,
   ElectronAPI,
   FactoryRootFolderSelection,
@@ -32,19 +31,13 @@ import type {
   SessionMetrics,
   SessionsByIdsOptions,
   SessionsPaginationOptions,
-  SshAPI,
-  SshConfigHostEntry,
-  SshConnectionConfig,
-  SshConnectionStatus,
-  SshLastConnection,
   SubagentDetail,
   TriggerTestResult,
   UpdaterAPI,
   WaterfallData,
   WslFactoryRootCandidate,
 } from '@shared/types';
-import type { MonthlyTokenUsage } from '@shared/types/analytics';
-import type { AgentConfig, AnalyticsAPI, DroidConfig } from '@shared/types/api';
+import type { AgentConfig, DroidConfig } from '@shared/types/api';
 
 export class HttpAPIClient implements ElectronAPI {
   private baseUrl: string;
@@ -471,20 +464,11 @@ export class HttpAPIClient implements ElectronAPI {
       this.post('/api/config/hide-sessions', { projectId, sessionIds }),
     unhideSessions: (projectId: string, sessionIds: string[]): Promise<void> =>
       this.post('/api/config/unhide-sessions', { projectId, sessionIds }),
-  };
-
-  // ---------------------------------------------------------------------------
-  // Analytics (browser fallback — returns empty data)
-  // ---------------------------------------------------------------------------
-
-  analytics: AnalyticsAPI = {
-    getMonthlyUsage: async (_months?: number): Promise<MonthlyTokenUsage[]> => {
-      try {
-        return await this.get<MonthlyTokenUsage[]>('/api/analytics/monthly-usage');
-      } catch {
-        return [];
-      }
-    },
+    hideProject: (projectId: string): Promise<void> =>
+      this.post('/api/config/hide-project', { projectId }),
+    unhideProject: (projectId: string): Promise<void> =>
+      this.post('/api/config/unhide-project', { projectId }),
+    getHiddenProjects: (): Promise<string[]> => this.get('/api/config/hidden-projects'),
   };
 
   // ---------------------------------------------------------------------------
@@ -564,60 +548,6 @@ export class HttpAPIClient implements ElectronAPI {
     onStatus: (_callback): (() => void) => {
       return () => {};
     },
-  };
-
-  // ---------------------------------------------------------------------------
-  // SSH
-  // ---------------------------------------------------------------------------
-
-  ssh: SshAPI = {
-    connect: (config: SshConnectionConfig): Promise<SshConnectionStatus> =>
-      this.post('/api/ssh/connect', config),
-    disconnect: (): Promise<SshConnectionStatus> => this.post('/api/ssh/disconnect'),
-    getState: (): Promise<SshConnectionStatus> => this.get('/api/ssh/state'),
-    test: (config: SshConnectionConfig): Promise<{ success: boolean; error?: string }> =>
-      this.post('/api/ssh/test', config),
-    getConfigHosts: async (): Promise<SshConfigHostEntry[]> => {
-      const result = await this.get<{ success: boolean; data?: SshConfigHostEntry[] }>(
-        '/api/ssh/config-hosts'
-      );
-      return result.data ?? [];
-    },
-    resolveHost: async (alias: string): Promise<SshConfigHostEntry | null> => {
-      const result = await this.post<{
-        success: boolean;
-        data?: SshConfigHostEntry | null;
-      }>('/api/ssh/resolve-host', { alias });
-      return result.data ?? null;
-    },
-    saveLastConnection: (config: SshLastConnection): Promise<void> =>
-      this.post('/api/ssh/save-last-connection', config),
-    getLastConnection: async (): Promise<SshLastConnection | null> => {
-      const result = await this.get<{ success: boolean; data?: SshLastConnection | null }>(
-        '/api/ssh/last-connection'
-      );
-      return result.data ?? null;
-    },
-    // IPC signature: (event: unknown, status: SshConnectionStatus) => void
-    onStatus: (callback): (() => void) =>
-      this.addEventListener('ssh:status', (data: unknown) =>
-        callback(null, data as SshConnectionStatus)
-      ),
-  };
-
-  // ---------------------------------------------------------------------------
-  // Context API
-  // ---------------------------------------------------------------------------
-
-  context = {
-    list: (): Promise<ContextInfo[]> => this.get<ContextInfo[]>('/api/contexts'),
-    getActive: (): Promise<string> => this.get<string>('/api/contexts/active'),
-    switch: (contextId: string): Promise<{ contextId: string }> =>
-      this.post<{ contextId: string }>('/api/contexts/switch', { contextId }),
-    onChanged: (callback: (event: unknown, data: ContextInfo) => void): (() => void) =>
-      this.addEventListener('context:changed', (data: unknown) =>
-        callback(null, data as ContextInfo)
-      ),
   };
 
   // HTTP Server API — in browser mode, server is already running (we're using it)

@@ -113,6 +113,11 @@ export function registerConfigHandlers(ipcMain: IpcMain): void {
   ipcMain.handle('config:hideSessions', handleHideSessions);
   ipcMain.handle('config:unhideSessions', handleUnhideSessions);
 
+  // Project hide handlers
+  ipcMain.handle('config:hideProject', handleHideProject);
+  ipcMain.handle('config:unhideProject', handleUnhideProject);
+  ipcMain.handle('config:getHiddenProjects', handleGetHiddenProjects);
+
   // Dialog handlers
   ipcMain.handle('config:selectFolders', handleSelectFolders);
   ipcMain.handle('config:selectFactoryRootFolder', handleSelectFactoryRootFolder);
@@ -1050,6 +1055,59 @@ async function handleUnhideSessions(
   }
 }
 
+/**
+ * Handler for 'config:hideProject' - Hides a project from the sidebar list.
+ */
+async function handleHideProject(
+  _event: IpcMainInvokeEvent,
+  projectId: string
+): Promise<ConfigResult> {
+  try {
+    if (!projectId || typeof projectId !== 'string') {
+      return { success: false, error: 'Project ID is required and must be a string' };
+    }
+    configManager.hideProject(projectId);
+    return { success: true };
+  } catch (error) {
+    logger.error('Error in config:hideProject:', error);
+    return { success: false, error: getErrorMessage(error) };
+  }
+}
+
+/**
+ * Handler for 'config:unhideProject' - Unhides a previously hidden project.
+ */
+async function handleUnhideProject(
+  _event: IpcMainInvokeEvent,
+  projectId: string
+): Promise<ConfigResult> {
+  try {
+    if (!projectId || typeof projectId !== 'string') {
+      return { success: false, error: 'Project ID is required and must be a string' };
+    }
+    configManager.unhideProject(projectId);
+    return { success: true };
+  } catch (error) {
+    logger.error('Error in config:unhideProject:', error);
+    return { success: false, error: getErrorMessage(error) };
+  }
+}
+
+/**
+ * Handler for 'config:getHiddenProjects' - Returns the list of hidden project IDs.
+ */
+async function handleGetHiddenProjects(
+  _event: IpcMainInvokeEvent
+): Promise<ConfigResult<string[]>> {
+  try {
+    const hiddenProjects = configManager.getHiddenProjects();
+    return { success: true, data: hiddenProjects };
+  } catch (error) {
+    logger.error('Error in config:getHiddenProjects:', error);
+    return { success: false, error: getErrorMessage(error) };
+  }
+}
+
 // =============================================================================
 // Cleanup
 // =============================================================================
@@ -1078,6 +1136,9 @@ export function removeConfigHandlers(ipcMain: IpcMain): void {
   ipcMain.removeHandler('config:unhideSession');
   ipcMain.removeHandler('config:hideSessions');
   ipcMain.removeHandler('config:unhideSessions');
+  ipcMain.removeHandler('config:hideProject');
+  ipcMain.removeHandler('config:unhideProject');
+  ipcMain.removeHandler('config:getHiddenProjects');
   ipcMain.removeHandler('config:selectFolders');
   ipcMain.removeHandler('config:selectFactoryRootFolder');
   ipcMain.removeHandler('config:getFactoryRootInfo');

@@ -84,17 +84,17 @@ export const SessionSettingsBadge = React.memo(function SessionSettingsBadge({
 
   return (
     <div
-      className="flex flex-wrap items-center gap-1.5 border-b px-3 py-1.5 text-[10px]"
+      className="flex flex-wrap items-center gap-1.5 border-b px-3 py-2 text-[11px]"
       style={{
-        borderColor: 'var(--color-border)',
-        backgroundColor: 'var(--color-surface)',
+        borderColor: 'var(--color-border-emphasis)',
+        backgroundColor: 'var(--color-surface-raised)',
       }}
     >
       {/* Model + provider */}
       {modelLabel && (
         <span
           className="truncate font-mono"
-          style={{ color: 'var(--color-text-secondary)', maxWidth: '220px' }}
+          style={{ color: 'var(--color-text)', maxWidth: '220px' }}
           title={modelLabel}
         >
           {modelLabel}
@@ -111,7 +111,7 @@ export const SessionSettingsBadge = React.memo(function SessionSettingsBadge({
 
       {/* Reasoning effort */}
       {hasReasoningEffort && (
-        <span style={{ color: 'var(--color-text-muted)' }}>
+        <span style={{ color: 'var(--color-text-secondary)' }}>
           reasoning:{' '}
           <span style={{ color: 'var(--color-text-secondary)' }}>
             {droidSettings.reasoningEffort}

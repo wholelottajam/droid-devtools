@@ -9,8 +9,6 @@
  * - NotificationManager: Notification handling and persistence
  * - FileSystemProvider: Abstract filesystem interface
  * - LocalFileSystemProvider: Local fs implementation
- * - SshFileSystemProvider: SSH/SFTP implementation
- * - SshConnectionManager: SSH connection lifecycle
  * - ServiceContext: Service bundle for a single workspace context
  * - ServiceContextRegistry: Registry coordinator for all contexts
  * - HttpServer: Fastify-based HTTP server for API and static file serving
@@ -25,8 +23,5 @@ export * from './LocalFileSystemProvider';
 export * from './NotificationManager';
 export * from './ServiceContext';
 export * from './ServiceContextRegistry';
-export * from './SshConfigParser';
-export * from './SshConnectionManager';
-export * from './SshFileSystemProvider';
 export * from './TriggerManager';
 export * from './UpdaterService';

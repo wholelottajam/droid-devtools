@@ -29,10 +29,15 @@ export interface ProjectSlice {
   projectsLoading: boolean;
   projectsError: string | null;
   _sessionCache: Map<string, SessionCacheEntry>;
+  hiddenProjectIds: string[];
+  showHiddenProjects: boolean;
 
   // Actions
   fetchProjects: () => Promise<void>;
   selectProject: (id: string) => void;
+  loadHiddenProjects: () => Promise<void>;
+  toggleHideProject: (id: string) => Promise<void>;
+  toggleShowHiddenProjects: () => void;
 }
 
 // =============================================================================
@@ -46,6 +51,8 @@ export const createProjectSlice: StateCreator<AppState, [], [], ProjectSlice> = 
   projectsLoading: false,
   projectsError: null,
   _sessionCache: new Map(),
+  hiddenProjectIds: [],
+  showHiddenProjects: false,
 
   // Fetch all projects from main process
   fetchProjects: async () => {
@@ -62,7 +69,33 @@ export const createProjectSlice: StateCreator<AppState, [], [], ProjectSlice> = 
         projectsError: error instanceof Error ? error.message : 'Failed to fetch projects',
         projectsLoading: false,
       });
+      return;
     }
+    await get().loadHiddenProjects();
+  },
+
+  loadHiddenProjects: async () => {
+    try {
+      const hiddenProjectIds = await api.config.getHiddenProjects();
+      set({ hiddenProjectIds });
+    } catch {
+      // Non-fatal: leave hiddenProjectIds as-is
+    }
+  },
+
+  toggleHideProject: async (id: string) => {
+    const isHidden = get().hiddenProjectIds.includes(id);
+    if (isHidden) {
+      await api.config.unhideProject(id);
+      set((s) => ({ hiddenProjectIds: s.hiddenProjectIds.filter((pid) => pid !== id) }));
+    } else {
+      await api.config.hideProject(id);
+      set((s) => ({ hiddenProjectIds: [id, ...s.hiddenProjectIds] }));
+    }
+  },
+
+  toggleShowHiddenProjects: () => {
+    set((s) => ({ showHiddenProjects: !s.showHiddenProjects }));
   },
 
   // Select a project and fetch its sessions (paginated)

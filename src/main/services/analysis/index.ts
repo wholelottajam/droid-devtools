@@ -21,7 +21,6 @@ export * from './ProcessLinker';
 export * from './SemanticStepExtractor';
 export * from './SemanticStepGrouper';
 export * from './SubagentDetailBuilder';
-export * from './TokenAggregator';
 export * from './ToolExecutionBuilder';
 export * from './ToolResultExtractor';
 export * from './ToolSummaryFormatter';

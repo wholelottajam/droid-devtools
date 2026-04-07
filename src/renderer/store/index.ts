@@ -6,8 +6,6 @@ import { api } from '@renderer/api';
 import { create } from 'zustand';
 
 import { createConfigSlice } from './slices/configSlice';
-import { createConnectionSlice } from './slices/connectionSlice';
-import { createContextSlice } from './slices/contextSlice';
 import { createConversationSlice } from './slices/conversationSlice';
 import { createNotificationSlice } from './slices/notificationSlice';
 import { createPaneSlice } from './slices/paneSlice';
@@ -42,8 +40,6 @@ export const useStore = create<AppState>()((...args) => ({
   ...createUISlice(...args),
   ...createNotificationSlice(...args),
   ...createConfigSlice(...args),
-  ...createConnectionSlice(...args),
-  ...createContextSlice(...args),
   ...createUpdateSlice(...args),
 }));
 
@@ -249,7 +245,7 @@ export function initializeNotificationListeners(): () => void {
         isTopLevelSessionEvent &&
         matchesSelectedProject &&
         isUnknownSessionInSidebar &&
-        (event.type === 'add' || (state.connectionMode === 'local' && event.type === 'change'));
+        (event.type === 'add' || event.type === 'change');
 
       // Refresh sidebar session list only when a truly new top-level session appears.
       // Local fs.watch can report "change" before/without "add" for newly created files.
@@ -348,41 +344,6 @@ export function initializeNotificationListeners(): () => void {
             updateError: s.error ?? 'Unknown error',
           });
           break;
-      }
-    });
-    if (typeof cleanup === 'function') {
-      cleanupFns.push(cleanup);
-    }
-  }
-
-  // Listen for SSH connection status changes from main process
-  // NOTE: Only syncs connection status here. Data fetching is handled by
-  // connectionSlice.connectSsh/disconnectSsh and contextSlice.switchContext.
-  if (api.ssh?.onStatus) {
-    const cleanup = api.ssh.onStatus((_event: unknown, status: unknown) => {
-      const s = status as { state: string; host: string | null; error: string | null };
-      useStore
-        .getState()
-        .setConnectionStatus(
-          s.state as 'disconnected' | 'connecting' | 'connected' | 'error',
-          s.host,
-          s.error
-        );
-    });
-    if (typeof cleanup === 'function') {
-      cleanupFns.push(cleanup);
-    }
-  }
-
-  // Listen for context changes from main process (e.g., SSH disconnect)
-  if (api.context?.onChanged) {
-    const cleanup = api.context.onChanged((_event: unknown, data: unknown) => {
-      const { id } = data as { id: string; type: string };
-      const currentContextId = useStore.getState().activeContextId;
-      if (id !== currentContextId) {
-        // Main process switched context externally (e.g., SSH disconnect)
-        // Trigger renderer-side context switch to sync state
-        void useStore.getState().switchContext(id);
       }
     });
     if (typeof cleanup === 'function') {

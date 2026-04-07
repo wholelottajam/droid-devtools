@@ -1,12 +1,10 @@
 import React, { useEffect } from 'react';
 
 import { ConfirmDialog } from './components/common/ConfirmDialog';
-import { ContextSwitchOverlay } from './components/common/ContextSwitchOverlay';
 import { ErrorBoundary } from './components/common/ErrorBoundary';
 import { TabbedLayout } from './components/layout/TabbedLayout';
 import { useTheme } from './hooks/useTheme';
-import { api } from './api';
-import { initializeNotificationListeners, useStore } from './store';
+import { initializeNotificationListeners } from './store';
 
 export const App = (): React.JSX.Element => {
   // Initialize theme on app load
@@ -21,20 +19,6 @@ export const App = (): React.JSX.Element => {
     }
   }, []);
 
-  // Initialize context system (before notification listeners)
-  useEffect(() => {
-    void useStore.getState().initializeContextSystem();
-  }, []);
-
-  // Refresh available contexts when SSH connection state changes
-  useEffect(() => {
-    if (!api.ssh?.onStatus) return;
-    const cleanup = api.ssh.onStatus(() => {
-      void useStore.getState().fetchAvailableContexts();
-    });
-    return cleanup;
-  }, []);
-
   // Initialize IPC event listeners (notifications, file changes)
   useEffect(() => {
     const cleanup = initializeNotificationListeners();
@@ -43,7 +27,6 @@ export const App = (): React.JSX.Element => {
 
   return (
     <ErrorBoundary>
-      <ContextSwitchOverlay />
       <TabbedLayout />
       <ConfirmDialog />
     </ErrorBoundary>

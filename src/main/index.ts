@@ -52,8 +52,6 @@ const getWindowIconPath = (): string | undefined => {
 
 const logger = createLogger('App');
 // IPC channel constants (duplicated from @preload to avoid boundary violation)
-const SSH_STATUS = 'ssh:status';
-const CONTEXT_CHANGED = 'context:changed';
 const HTTP_SERVER_START = 'httpServer:start';
 const HTTP_SERVER_STOP = 'httpServer:stop';
 const HTTP_SERVER_GET_STATUS = 'httpServer:getStatus';
@@ -74,7 +72,6 @@ import {
   NotificationManager,
   ServiceContext,
   ServiceContextRegistry,
-  SshConnectionManager,
   UpdaterService,
 } from './services';
 
@@ -88,7 +85,6 @@ let mainWindow: BrowserWindow | null = null;
 let contextRegistry: ServiceContextRegistry;
 let notificationManager: NotificationManager;
 let updaterService: UpdaterService;
-let sshConnectionManager: SshConnectionManager;
 let httpServer: HttpServer;
 
 // File watcher event cleanup functions
@@ -148,42 +144,6 @@ function wireFileWatcherEvents(context: ServiceContext): void {
 }
 
 /**
- * Handles mode switch requests from the HTTP server.
- * Switches the active context back to local when requested.
- */
-async function handleModeSwitch(mode: 'local' | 'ssh'): Promise<void> {
-  if (mode === 'local' && contextRegistry.getActiveContextId() !== 'local') {
-    const { current } = contextRegistry.switch('local');
-    onContextSwitched(current);
-  }
-}
-
-/**
- * Re-wires file watcher events only. No renderer notification.
- * Used for renderer-initiated switches where the renderer already handles state.
- */
-export function rewireContextEvents(context: ServiceContext): void {
-  wireFileWatcherEvents(context);
-}
-
-/**
- * Full callback: re-wire + notify renderer.
- * Used for external/unexpected switches (e.g., HTTP server mode switch).
- */
-function onContextSwitched(context: ServiceContext): void {
-  rewireContextEvents(context);
-
-  // Notify renderer of context change
-  if (mainWindow && !mainWindow.isDestroyed()) {
-    mainWindow.webContents.send(SSH_STATUS, sshConnectionManager.getStatus());
-    mainWindow.webContents.send(CONTEXT_CHANGED, {
-      id: context.id,
-      type: context.type,
-    });
-  }
-}
-
-/**
  * Rebuilds the local ServiceContext using the current configured Factory root paths.
  * Called when general.factoryRootPath changes.
  */
@@ -238,9 +198,6 @@ function reconfigureLocalContextForFactoryRoot(): void {
 function initializeServices(): void {
   logger.info('Initializing services...');
 
-  // Initialize SSH connection manager
-  sshConnectionManager = new SshConnectionManager();
-
   // Create ServiceContextRegistry
   contextRegistry = new ServiceContextRegistry();
 
@@ -276,9 +233,7 @@ function initializeServices(): void {
   httpServer = new HttpServer();
 
   // Initialize IPC handlers with registry
-  initializeIpcHandlers(contextRegistry, updaterService, sshConnectionManager, {
-    rewire: rewireContextEvents,
-    full: onContextSwitched,
+  initializeIpcHandlers(contextRegistry, updaterService, {
     onFactoryRootPathUpdated: (_factoryRootPath: string | null) => {
       reconfigureLocalContextForFactoryRoot();
     },
@@ -290,7 +245,7 @@ function initializeServices(): void {
       if (httpServer.isRunning()) {
         return { success: true, data: { running: true, port: httpServer.getPort() } };
       }
-      await startHttpServer(handleModeSwitch);
+      await startHttpServer();
       // Persist the enabled state
       configManager.updateConfig('httpServer', { enabled: true, port: httpServer.getPort() });
       return { success: true, data: { running: true, port: httpServer.getPort() } };
@@ -322,14 +277,6 @@ function initializeServices(): void {
     return { success: true, data: { running: httpServer.isRunning(), port: httpServer.getPort() } };
   });
 
-  // Forward SSH state changes to renderer and HTTP SSE clients
-  sshConnectionManager.on('state-change', (status: unknown) => {
-    if (mainWindow && !mainWindow.isDestroyed()) {
-      mainWindow.webContents.send(SSH_STATUS, status);
-    }
-    httpServer.broadcast('ssh:status', status);
-  });
-
   // Forward notification events to HTTP SSE clients
   notificationManager.on('notification-new', (notification: unknown) => {
     httpServer.broadcast('notification:new', notification);
@@ -344,7 +291,7 @@ function initializeServices(): void {
   // Start HTTP server if enabled in config
   const appConfig = configManager.getConfig();
   if (appConfig.httpServer?.enabled) {
-    void startHttpServer(handleModeSwitch);
+    void startHttpServer();
   }
 
   logger.info('Services initialized successfully');
@@ -353,9 +300,7 @@ function initializeServices(): void {
 /**
  * Starts the HTTP sidecar server with services from the active context.
  */
-async function startHttpServer(
-  modeSwitchHandler: (mode: 'local' | 'ssh') => Promise<void>
-): Promise<void> {
+async function startHttpServer(): Promise<void> {
   try {
     const config = configManager.getConfig();
     const activeContext = contextRegistry.getActive();
@@ -367,9 +312,7 @@ async function startHttpServer(
         chunkBuilder: activeContext.chunkBuilder,
         dataCache: activeContext.dataCache,
         updaterService,
-        sshConnectionManager,
       },
-      modeSwitchHandler,
       config.httpServer?.port ?? 3456
     );
     logger.info(`HTTP sidecar server running on port ${port}`);
@@ -402,11 +345,6 @@ function shutdownServices(): void {
   // Dispose all contexts (including local)
   if (contextRegistry) {
     contextRegistry.dispose();
-  }
-
-  // Dispose SSH connection manager
-  if (sshConnectionManager) {
-    sshConnectionManager.dispose();
   }
 
   // Remove IPC handlers

@@ -13,7 +13,6 @@ import { useZoomFactor } from '@renderer/hooks/useZoomFactor';
 
 import { UpdateBanner } from '../common/UpdateBanner';
 import { UpdateDialog } from '../common/UpdateDialog';
-import { WorkspaceIndicator } from '../common/WorkspaceIndicator';
 import { CommandPalette } from '../search/CommandPalette';
 
 import { CustomTitleBar } from './CustomTitleBar';
@@ -28,7 +27,7 @@ export const TabbedLayout = (): React.JSX.Element => {
 
   return (
     <div
-      className="flex h-screen flex-col bg-claude-dark-bg text-claude-dark-text"
+      className="bg-claude-dark-bg text-claude-dark-text flex h-screen flex-col"
       style={
         { '--macos-traffic-light-padding-left': `${trafficLightPadding}px` } as React.CSSProperties
       }
@@ -46,7 +45,6 @@ export const TabbedLayout = (): React.JSX.Element => {
         <PaneContainer />
       </div>
       <UpdateDialog />
-      <WorkspaceIndicator />
     </div>
   );
 };

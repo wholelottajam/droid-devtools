@@ -19,7 +19,6 @@ import * as path from 'path';
 import { DEFAULT_TRIGGERS, TriggerManager } from './TriggerManager';
 
 import type { TriggerColor } from '@shared/constants/triggerColors';
-import type { SshConnectionProfile } from '@shared/types/api';
 
 const logger = createLogger('Service:ConfigManager');
 
@@ -196,17 +195,8 @@ export interface SessionsConfig {
   hiddenSessions: Record<string, { sessionId: string; hiddenAt: number }[]>;
 }
 
-export interface SshPersistConfig {
-  lastConnection: {
-    host: string;
-    port: number;
-    username: string;
-    authMethod: 'password' | 'privateKey' | 'agent' | 'auto';
-    privateKeyPath?: string;
-  } | null;
-  autoReconnect: boolean;
-  profiles: SshConnectionProfile[];
-  lastActiveContextId: string;
+export interface ProjectsConfig {
+  hiddenProjects: string[];
 }
 
 export interface HttpServerConfig {
@@ -227,7 +217,7 @@ export interface AppConfig {
   general: GeneralConfig;
   display: DisplayConfig;
   sessions: SessionsConfig;
-  ssh: SshPersistConfig;
+  projects: ProjectsConfig;
   httpServer: HttpServerConfig;
   models: ModelsConfig;
 }
@@ -300,11 +290,8 @@ const DEFAULT_CONFIG: AppConfig = {
     pinnedSessions: {},
     hiddenSessions: {},
   },
-  ssh: {
-    lastConnection: null,
-    autoReconnect: false,
-    profiles: [],
-    lastActiveContextId: 'local',
+  projects: {
+    hiddenProjects: [],
   },
   httpServer: {
     enabled: false,
@@ -516,9 +503,9 @@ export class ConfigManager {
         ...DEFAULT_CONFIG.sessions,
         ...(loaded.sessions ?? {}),
       },
-      ssh: {
-        ...DEFAULT_CONFIG.ssh,
-        ...(loaded.ssh ?? {}),
+      projects: {
+        ...DEFAULT_CONFIG.projects,
+        ...(loaded.projects ?? {}),
       },
       httpServer: {
         ...DEFAULT_CONFIG.httpServer,
@@ -933,74 +920,36 @@ export class ConfigManager {
   }
 
   // ===========================================================================
-  // SSH Profile Management
+  // Project Visibility Methods
   // ===========================================================================
 
   /**
-   * Adds an SSH connection profile.
-   * @param profile - The SSH connection profile to add
+   * Hides a project from the sidebar project list.
+   * @param projectId - The project ID to hide
    */
-  addSshProfile(profile: SshConnectionProfile): void {
-    // Check for duplicates by ID
-    if (this.config.ssh.profiles.some((p) => p.id === profile.id)) {
-      logger.warn(`SSH profile with ID ${profile.id} already exists`);
-      return;
-    }
-
-    this.config.ssh.profiles.push(profile);
+  hideProject(projectId: string): void {
+    const hidden = this.config.projects.hiddenProjects;
+    if (hidden.includes(projectId)) return;
+    this.config.projects.hiddenProjects = [projectId, ...hidden];
     this.saveConfig();
-    logger.info(`SSH profile added: ${profile.name} (${profile.id})`);
   }
 
   /**
-   * Removes an SSH connection profile by ID.
-   * @param profileId - The profile ID to remove
+   * Unhides a previously hidden project.
+   * @param projectId - The project ID to unhide
    */
-  removeSshProfile(profileId: string): void {
-    const index = this.config.ssh.profiles.findIndex((p) => p.id === profileId);
-    if (index === -1) {
-      logger.warn(`SSH profile not found: ${profileId}`);
-      return;
-    }
-
-    const removed = this.config.ssh.profiles.splice(index, 1)[0];
+  unhideProject(projectId: string): void {
+    this.config.projects.hiddenProjects = this.config.projects.hiddenProjects.filter(
+      (id) => id !== projectId
+    );
     this.saveConfig();
-    logger.info(`SSH profile removed: ${removed.name} (${profileId})`);
   }
 
   /**
-   * Updates an existing SSH connection profile.
-   * @param profileId - The profile ID to update
-   * @param updates - Partial profile data to merge
+   * Returns the list of hidden project IDs.
    */
-  updateSshProfile(profileId: string, updates: Partial<SshConnectionProfile>): void {
-    const profile = this.config.ssh.profiles.find((p) => p.id === profileId);
-    if (!profile) {
-      logger.warn(`SSH profile not found: ${profileId}`);
-      return;
-    }
-
-    Object.assign(profile, updates);
-    this.saveConfig();
-    logger.info(`SSH profile updated: ${profile.name} (${profileId})`);
-  }
-
-  /**
-   * Gets all SSH connection profiles.
-   * @returns Array of SSH connection profiles
-   */
-  getSshProfiles(): SshConnectionProfile[] {
-    return this.deepClone(this.config.ssh.profiles);
-  }
-
-  /**
-   * Sets the last active context ID (for restoration on app restart).
-   * @param contextId - The context ID that was active
-   */
-  setLastActiveContextId(contextId: string): void {
-    this.config.ssh.lastActiveContextId = contextId;
-    this.saveConfig();
-    logger.info(`Last active context ID saved: ${contextId}`);
+  getHiddenProjects(): string[] {
+    return [...this.config.projects.hiddenProjects];
   }
 
   // ===========================================================================

@@ -7,7 +7,6 @@
  * Shared between preload and renderer processes.
  */
 
-import type { MonthlyTokenUsage } from './analytics';
 import type {
   AppConfig,
   DetectedError,
@@ -137,6 +136,12 @@ export interface ConfigAPI {
   hideSessions: (projectId: string, sessionIds: string[]) => Promise<void>;
   /** Bulk unhide sessions for a project */
   unhideSessions: (projectId: string, sessionIds: string[]) => Promise<void>;
+  /** Hide a project from the sidebar list */
+  hideProject: (projectId: string) => Promise<void>;
+  /** Unhide a previously hidden project */
+  unhideProject: (projectId: string) => Promise<void>;
+  /** Get all hidden project IDs */
+  getHiddenProjects: () => Promise<string[]>;
 }
 
 export interface FactoryRootInfo {
@@ -164,18 +169,6 @@ export interface WslFactoryRootCandidate {
   path: string;
   /** True if this root contains "sessions" directory */
   hasSessionsDir: boolean;
-}
-
-// =============================================================================
-// Analytics API
-// =============================================================================
-
-/**
- * Analytics API exposed via preload.
- */
-export interface AnalyticsAPI {
-  /** Get monthly token usage aggregated across all sessions */
-  getMonthlyUsage: (months?: number) => Promise<MonthlyTokenUsage[]>;
 }
 
 // =============================================================================
@@ -226,104 +219,6 @@ export interface UpdaterAPI {
   download: () => Promise<void>;
   install: () => Promise<void>;
   onStatus: (callback: (event: unknown, status: unknown) => void) => () => void;
-}
-
-// =============================================================================
-// Context API
-// =============================================================================
-
-/**
- * Context information for listing available contexts.
- */
-export interface ContextInfo {
-  id: string;
-  type: 'local' | 'ssh';
-}
-
-// =============================================================================
-// SSH API
-// =============================================================================
-
-/**
- * SSH connection state.
- */
-export type SshConnectionState = 'disconnected' | 'connecting' | 'connected' | 'error';
-
-/**
- * SSH authentication method.
- */
-export type SshAuthMethod = 'password' | 'privateKey' | 'agent' | 'auto';
-
-/**
- * SSH config host entry resolved from ~/.ssh/config.
- */
-export interface SshConfigHostEntry {
-  alias: string;
-  hostName?: string;
-  user?: string;
-  port?: number;
-  identityFiles?: string[];
-}
-
-/**
- * SSH connection configuration sent from renderer.
- */
-export interface SshConnectionConfig {
-  host: string;
-  port: number;
-  username: string;
-  authMethod: SshAuthMethod;
-  password?: string;
-  privateKeyPath?: string;
-}
-
-/**
- * Saved SSH connection profile (no password stored).
- */
-export interface SshConnectionProfile {
-  id: string;
-  name: string;
-  host: string;
-  port: number;
-  username: string;
-  authMethod: SshAuthMethod;
-  privateKeyPath?: string;
-}
-
-/**
- * SSH connection status returned from main process.
- */
-export interface SshConnectionStatus {
-  state: SshConnectionState;
-  host: string | null;
-  error: string | null;
-  remoteProjectsPath: string | null;
-}
-
-/**
- * SSH API exposed via preload.
- */
-/**
- * Saved SSH connection config (no password).
- */
-export interface SshLastConnection {
-  host: string;
-  port: number;
-  username: string;
-  authMethod: SshAuthMethod;
-  privateKeyPath?: string;
-}
-
-export interface SshAPI {
-  connect: (config: SshConnectionConfig) => Promise<SshConnectionStatus>;
-  disconnect: () => Promise<SshConnectionStatus>;
-  getState: () => Promise<SshConnectionStatus>;
-  test: (config: SshConnectionConfig) => Promise<{ success: boolean; error?: string }>;
-  getConfigHosts: () => Promise<SshConfigHostEntry[]>;
-  resolveHost: (alias: string) => Promise<SshConfigHostEntry | null>;
-  saveLastConnection: (config: SshLastConnection) => Promise<void>;
-  getLastConnection: () => Promise<SshLastConnection | null>;
-  onStatus: (callback: (event: unknown, status: SshConnectionStatus) => void) => () => void;
 }
 
 // =============================================================================
@@ -422,9 +317,6 @@ export interface ElectronAPI {
   // Config API
   config: ConfigAPI;
 
-  // Analytics API
-  analytics: AnalyticsAPI;
-
   // Deep link navigation
   session: SessionAPI;
 
@@ -457,17 +349,6 @@ export interface ElectronAPI {
 
   // Updater API
   updater: UpdaterAPI;
-
-  // SSH API
-  ssh: SshAPI;
-
-  // Context API
-  context: {
-    list: () => Promise<ContextInfo[]>;
-    getActive: () => Promise<string>;
-    switch: (contextId: string) => Promise<{ contextId: string }>;
-    onChanged: (callback: (event: unknown, data: ContextInfo) => void) => () => void;
-  };
 
   // HTTP Server API
   httpServer: HttpServerAPI;

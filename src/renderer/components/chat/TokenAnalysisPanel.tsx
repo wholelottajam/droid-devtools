@@ -174,7 +174,10 @@ export const TokenAnalysisPanel = React.memo(function TokenAnalysisPanel({
   return (
     <div
       className="border-b text-[10px]"
-      style={{ borderColor: 'var(--color-border)', backgroundColor: 'var(--color-surface)' }}
+      style={{
+        borderColor: 'var(--color-border-emphasis)',
+        backgroundColor: 'var(--color-surface-raised)',
+      }}
     >
       {/* Header — toggle */}
       <button
@@ -183,14 +186,20 @@ export const TokenAnalysisPanel = React.memo(function TokenAnalysisPanel({
         className="flex w-full items-center gap-1.5 px-3 py-1.5 text-left transition-opacity hover:opacity-80"
       >
         {expanded ? (
-          <ChevronDown className="size-3 shrink-0" style={{ color: 'var(--color-text-muted)' }} />
+          <ChevronDown
+            className="size-3 shrink-0"
+            style={{ color: 'var(--color-text-secondary)' }}
+          />
         ) : (
-          <ChevronRight className="size-3 shrink-0" style={{ color: 'var(--color-text-muted)' }} />
+          <ChevronRight
+            className="size-3 shrink-0"
+            style={{ color: 'var(--color-text-secondary)' }}
+          />
         )}
-        <Zap className="size-3 shrink-0" style={{ color: 'var(--color-text-muted)' }} />
-        <span style={{ color: 'var(--color-text-muted)' }}>Model Comparison</span>
+        <Zap className="size-3 shrink-0" style={{ color: '#f59e0b' }} />
+        <span style={{ color: 'var(--color-text-secondary)' }}>Model Comparison</span>
         {!expanded && (
-          <span className="ml-auto tabular-nums" style={{ color: 'var(--color-text-muted)' }}>
+          <span className="ml-auto tabular-nums" style={{ color: 'var(--color-text-secondary)' }}>
             {formatTokensCompact(currentWeighted)} weighted
           </span>
         )}

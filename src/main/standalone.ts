@@ -29,7 +29,6 @@ import {
 } from './services';
 
 import type { HttpServices } from './http';
-import type { SshConnectionManager } from './services/infrastructure/SshConnectionManager';
 import type { UpdaterService } from './services/infrastructure/UpdaterService';
 
 const logger = createLogger('Standalone');
@@ -58,27 +57,6 @@ const updaterServiceStub = {
   quitAndInstall: () => {},
   setMainWindow: () => {},
 } as unknown as UpdaterService;
-
-/** No-op SshConnectionManager stub — SSH is managed per-user in the Electron app. */
-const sshConnectionManagerStub = {
-  getStatus: () => ({
-    state: 'disconnected' as const,
-    host: null,
-    error: null,
-    remoteProjectsPath: null,
-  }),
-  getProvider: () => new LocalFileSystemProvider(),
-  isRemote: () => false,
-  connect: async () => {},
-  disconnect: () => {},
-  testConnection: async () => ({ success: false, error: 'SSH not available in standalone mode' }),
-  getConfigHosts: async () => [],
-  resolveHostConfig: async () => null,
-  dispose: () => {},
-  on: () => sshConnectionManagerStub,
-  off: () => sshConnectionManagerStub,
-  emit: () => false,
-} as unknown as SshConnectionManager;
 
 // =============================================================================
 // Application State
@@ -158,14 +136,10 @@ async function start(): Promise<void> {
     chunkBuilder: localContext.chunkBuilder,
     dataCache: localContext.dataCache,
     updaterService: updaterServiceStub,
-    sshConnectionManager: sshConnectionManagerStub,
   };
 
-  // No-op mode switch handler (no SSH in standalone)
-  const modeSwitchHandler = async (): Promise<void> => {};
-
   // Start the server
-  const port = await httpServer.start(services, modeSwitchHandler, PORT, HOST);
+  const port = await httpServer.start(services, PORT, HOST);
   logger.info(`Standalone server running at http://${HOST}:${port}`);
   logger.info('Open in your browser to view Droid sessions');
 }

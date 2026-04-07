@@ -50,13 +50,11 @@ export class HttpServer {
   /**
    * Start the HTTP server.
    * @param services - Service instances to pass to route handlers
-   * @param sshModeSwitchCallback - Callback for SSH mode switching
    * @param preferredPort - Port to try first (default 3456)
    * @param host - Host to bind to (default '127.0.0.1')
    */
   async start(
     services: HttpServices,
-    sshModeSwitchCallback: (mode: 'local' | 'ssh') => Promise<void>,
     preferredPort: number = 3456,
     host: string = '127.0.0.1'
   ): Promise<number> {
@@ -107,7 +105,7 @@ export class HttpServer {
       });
 
       // Register all API routes BEFORE the not-found handler
-      registerHttpRoutes(this.app, services, sshModeSwitchCallback);
+      registerHttpRoutes(this.app, services);
 
       // SPA fallback: serve index.html for all non-API routes
       this.app.setNotFoundHandler(async (request, reply) => {
@@ -118,7 +116,7 @@ export class HttpServer {
       });
     } else {
       logger.warn('Renderer output directory not found (run `pnpm build` first), serving API only');
-      registerHttpRoutes(this.app, services, sshModeSwitchCallback);
+      registerHttpRoutes(this.app, services);
     }
 
     // Try ports starting from preferredPort

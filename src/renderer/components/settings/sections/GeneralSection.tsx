@@ -45,7 +45,6 @@ export const GeneralSection = ({
   const [copied, setCopied] = useState(false);
 
   // Claude Root state
-  const connectionMode = useStore((s) => s.connectionMode);
   const fetchProjects = useStore((s) => s.fetchProjects);
   const fetchRepositoryGroups = useStore((s) => s.fetchRepositoryGroups);
 
@@ -129,23 +128,17 @@ export const GeneralSection = ({
         await api.config.update('general', { factoryRootPath });
         await loadFactoryRootInfo();
 
-        if (connectionMode === 'local') {
-          resetWorkspaceForRootChange();
-          await Promise.all([fetchProjects(), fetchRepositoryGroups()]);
-        }
+        resetWorkspaceForRootChange();
+        await Promise.all([fetchProjects(), fetchRepositoryGroups()]);
       } catch (error) {
-        setFactoryRootError(error instanceof Error ? error.message : 'Failed to update Factory root');
+        setFactoryRootError(
+          error instanceof Error ? error.message : 'Failed to update Factory root'
+        );
       } finally {
         setUpdatingFactoryRoot(false);
       }
     },
-    [
-      connectionMode,
-      fetchProjects,
-      fetchRepositoryGroups,
-      loadFactoryRootInfo,
-      resetWorkspaceForRootChange,
-    ]
+    [fetchProjects, fetchRepositoryGroups, loadFactoryRootInfo, resetWorkspaceForRootChange]
   );
 
   const handleSelectFactoryRootFolder = useCallback(async (): Promise<void> => {

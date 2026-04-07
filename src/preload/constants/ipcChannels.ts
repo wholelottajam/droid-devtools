@@ -80,36 +80,14 @@ export const CONFIG_HIDE_SESSIONS = 'config:hideSessions';
 /** Bulk unhide sessions */
 export const CONFIG_UNHIDE_SESSIONS = 'config:unhideSessions';
 
-// =============================================================================
-// SSH API Channels
-// =============================================================================
+/** Hide a project */
+export const CONFIG_HIDE_PROJECT = 'config:hideProject';
 
-/** Connect to SSH host */
-export const SSH_CONNECT = 'ssh:connect';
+/** Unhide a project */
+export const CONFIG_UNHIDE_PROJECT = 'config:unhideProject';
 
-/** Disconnect SSH and switch to local */
-export const SSH_DISCONNECT = 'ssh:disconnect';
-
-/** Get current SSH connection state */
-export const SSH_GET_STATE = 'ssh:getState';
-
-/** Test SSH connection without switching */
-export const SSH_TEST = 'ssh:test';
-
-/** Get SSH config hosts from ~/.ssh/config */
-export const SSH_GET_CONFIG_HOSTS = 'ssh:getConfigHosts';
-
-/** Resolve a single SSH config host alias */
-export const SSH_RESOLVE_HOST = 'ssh:resolveHost';
-
-/** Save last SSH connection config */
-export const SSH_SAVE_LAST_CONNECTION = 'ssh:saveLastConnection';
-
-/** Get last saved SSH connection config */
-export const SSH_GET_LAST_CONNECTION = 'ssh:getLastConnection';
-
-/** SSH status event channel (main -> renderer) */
-export const SSH_STATUS = 'ssh:status';
+/** Get all hidden project IDs */
+export const CONFIG_GET_HIDDEN_PROJECTS = 'config:getHiddenProjects';
 
 // =============================================================================
 // Updater API Channels
@@ -126,22 +104,6 @@ export const UPDATER_INSTALL = 'updater:install';
 
 /** Status event channel (main -> renderer) */
 export const UPDATER_STATUS = 'updater:status';
-
-// =============================================================================
-// Context API Channels
-// =============================================================================
-
-/** List all available contexts (local + SSH) */
-export const CONTEXT_LIST = 'context:list';
-
-/** Get active context ID */
-export const CONTEXT_GET_ACTIVE = 'context:getActive';
-
-/** Switch to a different context */
-export const CONTEXT_SWITCH = 'context:switch';
-
-/** Context changed event channel (main -> renderer) */
-export const CONTEXT_CHANGED = 'context:changed';
 
 // =============================================================================
 // HTTP Server API Channels
@@ -184,13 +146,6 @@ export const SESSION_REFRESH = 'session:refresh';
 
 /** Get droid definitions from ~/.factory/droids/ */
 export const GET_DROID_CONFIGS = 'get-droid-configs';
-
-// =============================================================================
-// Analytics API Channels
-// =============================================================================
-
-/** Get monthly token usage aggregated across all sessions */
-export const ANALYTICS_MONTHLY_USAGE = 'analytics:monthlyUsage';
 
 // =============================================================================
 // Search API Channels

@@ -13,7 +13,6 @@ import { registerNotificationRoutes } from './notifications';
 import { registerProjectRoutes } from './projects';
 import { registerSearchRoutes } from './search';
 import { registerSessionRoutes } from './sessions';
-import { registerSshRoutes } from './ssh';
 import { registerSubagentRoutes } from './subagents';
 import { registerUpdaterRoutes } from './updater';
 import { registerUtilityRoutes } from './utility';
@@ -27,7 +26,6 @@ import type {
   SubagentResolver,
   UpdaterService,
 } from '../services';
-import type { SshConnectionManager } from '../services/infrastructure/SshConnectionManager';
 import type { FastifyInstance } from 'fastify';
 
 const logger = createLogger('HTTP:routes');
@@ -39,14 +37,9 @@ export interface HttpServices {
   chunkBuilder: ChunkBuilder;
   dataCache: DataCache;
   updaterService: UpdaterService;
-  sshConnectionManager: SshConnectionManager;
 }
 
-export function registerHttpRoutes(
-  app: FastifyInstance,
-  services: HttpServices,
-  sshModeSwitchCallback: (mode: 'local' | 'ssh') => Promise<void>
-): void {
+export function registerHttpRoutes(app: FastifyInstance, services: HttpServices): void {
   registerProjectRoutes(app, services);
   registerSessionRoutes(app, services);
   registerSearchRoutes(app, services);
@@ -55,7 +48,6 @@ export function registerHttpRoutes(
   registerConfigRoutes(app);
   registerValidationRoutes(app);
   registerUtilityRoutes(app);
-  registerSshRoutes(app, services.sshConnectionManager, sshModeSwitchCallback);
   registerUpdaterRoutes(app, services);
   registerEventRoutes(app);
 

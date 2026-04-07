@@ -3,25 +3,12 @@ import { contextBridge, ipcRenderer } from 'electron';
 
 import {
   APP_RELAUNCH,
-  CONTEXT_CHANGED,
-  CONTEXT_GET_ACTIVE,
-  CONTEXT_LIST,
-  CONTEXT_SWITCH,
   FIND_SESSION_BY_ID,
   FIND_SESSIONS_BY_PARTIAL_ID,
   HTTP_SERVER_GET_STATUS,
   HTTP_SERVER_START,
   HTTP_SERVER_STOP,
   SESSION_REFRESH,
-  SSH_CONNECT,
-  SSH_DISCONNECT,
-  SSH_GET_CONFIG_HOSTS,
-  SSH_GET_LAST_CONNECTION,
-  SSH_GET_STATE,
-  SSH_RESOLVE_HOST,
-  SSH_SAVE_LAST_CONNECTION,
-  SSH_STATUS,
-  SSH_TEST,
   UPDATER_CHECK,
   UPDATER_DOWNLOAD,
   UPDATER_INSTALL,
@@ -31,7 +18,6 @@ import {
   WINDOW_MAXIMIZE,
   WINDOW_MINIMIZE,
 } from './constants/ipcChannels';
-import { ANALYTICS_MONTHLY_USAGE } from './constants/ipcChannels';
 import {
   CONFIG_ADD_IGNORE_REGEX,
   CONFIG_ADD_IGNORE_REPOSITORY,
@@ -40,7 +26,9 @@ import {
   CONFIG_FIND_WSL_FACTORY_ROOTS,
   CONFIG_GET,
   CONFIG_GET_FACTORY_ROOT_INFO,
+  CONFIG_GET_HIDDEN_PROJECTS,
   CONFIG_GET_TRIGGERS,
+  CONFIG_HIDE_PROJECT,
   CONFIG_HIDE_SESSION,
   CONFIG_HIDE_SESSIONS,
   CONFIG_OPEN_IN_EDITOR,
@@ -52,6 +40,7 @@ import {
   CONFIG_SELECT_FOLDERS,
   CONFIG_SNOOZE,
   CONFIG_TEST_TRIGGER,
+  CONFIG_UNHIDE_PROJECT,
   CONFIG_UNHIDE_SESSION,
   CONFIG_UNHIDE_SESSIONS,
   CONFIG_UNPIN_SESSION,
@@ -60,9 +49,7 @@ import {
 } from './constants/ipcChannels';
 
 import type {
-  AnalyticsAPI,
   AppConfig,
-  ContextInfo,
   ElectronAPI,
   FactoryRootFolderSelection,
   FactoryRootInfo,
@@ -70,10 +57,6 @@ import type {
   NotificationTrigger,
   SessionsByIdsOptions,
   SessionsPaginationOptions,
-  SshConfigHostEntry,
-  SshConnectionConfig,
-  SshConnectionStatus,
-  SshLastConnection,
   TriggerTestResult,
   WslFactoryRootCandidate,
 } from '@shared/types';
@@ -325,12 +308,16 @@ const electronAPI: ElectronAPI = {
     unhideSessions: async (projectId: string, sessionIds: string[]): Promise<void> => {
       return invokeIpcWithResult<void>(CONFIG_UNHIDE_SESSIONS, projectId, sessionIds);
     },
+    hideProject: async (projectId: string): Promise<void> => {
+      return invokeIpcWithResult<void>(CONFIG_HIDE_PROJECT, projectId);
+    },
+    unhideProject: async (projectId: string): Promise<void> => {
+      return invokeIpcWithResult<void>(CONFIG_UNHIDE_PROJECT, projectId);
+    },
+    getHiddenProjects: async (): Promise<string[]> => {
+      return invokeIpcWithResult<string[]>(CONFIG_GET_HIDDEN_PROJECTS);
+    },
   },
-
-  // Analytics API
-  analytics: {
-    getMonthlyUsage: (months?: number) => invokeIpcWithResult(ANALYTICS_MONTHLY_USAGE, months),
-  } satisfies AnalyticsAPI,
 
   // Deep link navigation
   session: {
@@ -407,71 +394,6 @@ const electronAPI: ElectronAPI = {
       return (): void => {
         ipcRenderer.removeListener(
           UPDATER_STATUS,
-          callback as (event: Electron.IpcRendererEvent, ...args: unknown[]) => void
-        );
-      };
-    },
-  },
-
-  // SSH API
-  ssh: {
-    connect: async (config: SshConnectionConfig): Promise<SshConnectionStatus> => {
-      return invokeIpcWithResult<SshConnectionStatus>(SSH_CONNECT, config);
-    },
-    disconnect: async (): Promise<SshConnectionStatus> => {
-      return invokeIpcWithResult<SshConnectionStatus>(SSH_DISCONNECT);
-    },
-    getState: async (): Promise<SshConnectionStatus> => {
-      return invokeIpcWithResult<SshConnectionStatus>(SSH_GET_STATE);
-    },
-    test: async (config: SshConnectionConfig): Promise<{ success: boolean; error?: string }> => {
-      return invokeIpcWithResult<{ success: boolean; error?: string }>(SSH_TEST, config);
-    },
-    getConfigHosts: async (): Promise<SshConfigHostEntry[]> => {
-      return invokeIpcWithResult<SshConfigHostEntry[]>(SSH_GET_CONFIG_HOSTS);
-    },
-    resolveHost: async (alias: string): Promise<SshConfigHostEntry | null> => {
-      return invokeIpcWithResult<SshConfigHostEntry | null>(SSH_RESOLVE_HOST, alias);
-    },
-    saveLastConnection: async (config: SshLastConnection): Promise<void> => {
-      return invokeIpcWithResult<void>(SSH_SAVE_LAST_CONNECTION, config);
-    },
-    getLastConnection: async (): Promise<SshLastConnection | null> => {
-      return invokeIpcWithResult<SshLastConnection | null>(SSH_GET_LAST_CONNECTION);
-    },
-    onStatus: (callback: (event: unknown, status: SshConnectionStatus) => void): (() => void) => {
-      ipcRenderer.on(
-        SSH_STATUS,
-        callback as (event: Electron.IpcRendererEvent, ...args: unknown[]) => void
-      );
-      return (): void => {
-        ipcRenderer.removeListener(
-          SSH_STATUS,
-          callback as (event: Electron.IpcRendererEvent, ...args: unknown[]) => void
-        );
-      };
-    },
-  },
-
-  // Context API
-  context: {
-    list: async (): Promise<ContextInfo[]> => {
-      return invokeIpcWithResult<ContextInfo[]>(CONTEXT_LIST);
-    },
-    getActive: async (): Promise<string> => {
-      return invokeIpcWithResult<string>(CONTEXT_GET_ACTIVE);
-    },
-    switch: async (contextId: string): Promise<{ contextId: string }> => {
-      return invokeIpcWithResult<{ contextId: string }>(CONTEXT_SWITCH, contextId);
-    },
-    onChanged: (callback: (event: unknown, data: ContextInfo) => void): (() => void) => {
-      ipcRenderer.on(
-        CONTEXT_CHANGED,
-        callback as (event: Electron.IpcRendererEvent, ...args: unknown[]) => void
-      );
-      return (): void => {
-        ipcRenderer.removeListener(
-          CONTEXT_CHANGED,
           callback as (event: Electron.IpcRendererEvent, ...args: unknown[]) => void
         );
       };

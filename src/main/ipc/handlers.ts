@@ -10,19 +10,12 @@
  * - utility.ts: Shell operations and file reading
  * - notifications.ts: Notification management
  * - config.ts: App configuration
- * - ssh.ts: SSH connection management
  */
 
 import { createLogger } from '@shared/utils/logger';
 import { ipcMain } from 'electron';
 
-import { registerAnalyticsHandlers, removeAnalyticsHandlers } from './analyticsHandlers';
 import { initializeConfigHandlers, registerConfigHandlers, removeConfigHandlers } from './config';
-import {
-  initializeContextHandlers,
-  registerContextHandlers,
-  removeContextHandlers,
-} from './context';
 
 const logger = createLogger('IPC:handlers');
 import { registerNotificationHandlers, removeNotificationHandlers } from './notifications';
@@ -37,7 +30,6 @@ import {
   registerSessionHandlers,
   removeSessionHandlers,
 } from './sessions';
-import { initializeSshHandlers, registerSshHandlers, removeSshHandlers } from './ssh';
 import {
   initializeSubagentHandlers,
   registerSubagentHandlers,
@@ -52,12 +44,7 @@ import { registerUtilityHandlers, removeUtilityHandlers } from './utility';
 import { registerValidationHandlers, removeValidationHandlers } from './validation';
 import { registerWindowHandlers, removeWindowHandlers } from './window';
 
-import type {
-  ServiceContext,
-  ServiceContextRegistry,
-  SshConnectionManager,
-  UpdaterService,
-} from '../services';
+import type { ServiceContextRegistry, UpdaterService } from '../services';
 
 /**
  * Initializes IPC handlers with service registry.
@@ -65,10 +52,7 @@ import type {
 export function initializeIpcHandlers(
   registry: ServiceContextRegistry,
   updater: UpdaterService,
-  sshManager: SshConnectionManager,
   contextCallbacks: {
-    rewire: (context: ServiceContext) => void;
-    full: (context: ServiceContext) => void;
     onFactoryRootPathUpdated: (factoryRootPath: string | null) => Promise<void> | void;
   }
 ): void {
@@ -78,8 +62,6 @@ export function initializeIpcHandlers(
   initializeSearchHandlers(registry);
   initializeSubagentHandlers(registry);
   initializeUpdaterHandlers(updater);
-  initializeSshHandlers(sshManager, registry, contextCallbacks.rewire);
-  initializeContextHandlers(registry, contextCallbacks.rewire);
   initializeConfigHandlers({
     onFactoryRootPathUpdated: contextCallbacks.onFactoryRootPathUpdated,
   });
@@ -94,10 +76,7 @@ export function initializeIpcHandlers(
   registerNotificationHandlers(ipcMain);
   registerConfigHandlers(ipcMain);
   registerUpdaterHandlers(ipcMain);
-  registerSshHandlers(ipcMain);
-  registerContextHandlers(ipcMain);
   registerWindowHandlers(ipcMain);
-  registerAnalyticsHandlers(ipcMain);
 
   logger.info('All handlers registered');
 }
@@ -116,10 +95,7 @@ export function removeIpcHandlers(): void {
   removeNotificationHandlers(ipcMain);
   removeConfigHandlers(ipcMain);
   removeUpdaterHandlers(ipcMain);
-  removeSshHandlers(ipcMain);
-  removeContextHandlers(ipcMain);
   removeWindowHandlers(ipcMain);
-  removeAnalyticsHandlers(ipcMain);
 
   logger.info('All handlers removed');
 }

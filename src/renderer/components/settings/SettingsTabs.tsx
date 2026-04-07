@@ -1,15 +1,8 @@
-import { useMemo, useState } from 'react';
+import { useState } from 'react';
 
-import { isElectronMode } from '@renderer/api';
-import { Bell, Cpu, HardDrive, Server, Settings, Wrench } from 'lucide-react';
+import { Bell, Cpu, Settings, Wrench } from 'lucide-react';
 
-export type SettingsSection =
-  | 'general'
-  | 'connection'
-  | 'workspace'
-  | 'notifications'
-  | 'models'
-  | 'advanced';
+export type SettingsSection = 'general' | 'notifications' | 'models' | 'advanced';
 
 interface SettingsTabsProps {
   activeSection: SettingsSection;
@@ -20,13 +13,10 @@ interface TabConfig {
   id: SettingsSection;
   label: string;
   icon: React.ComponentType<{ className?: string }>;
-  electronOnly?: boolean;
 }
 
 const tabs: TabConfig[] = [
   { id: 'general', label: 'General', icon: Settings },
-  { id: 'connection', label: 'Connection', icon: Server, electronOnly: true },
-  { id: 'workspace', label: 'Workspaces', icon: HardDrive, electronOnly: true },
   { id: 'notifications', label: 'Notifications', icon: Bell },
   { id: 'models', label: 'Models', icon: Cpu },
   { id: 'advanced', label: 'Advanced', icon: Wrench },
@@ -37,15 +27,10 @@ export const SettingsTabs = ({
   onSectionChange,
 }: Readonly<SettingsTabsProps>): React.JSX.Element => {
   const [hoveredTab, setHoveredTab] = useState<SettingsSection | null>(null);
-  const isElectron = useMemo(() => isElectronMode(), []);
-  const visibleTabs = useMemo(
-    () => tabs.filter((tab) => !tab.electronOnly || isElectron),
-    [isElectron]
-  );
 
   return (
     <div className="inline-flex gap-1 border-b" style={{ borderColor: 'var(--color-border)' }}>
-      {visibleTabs.map((tab) => {
+      {tabs.map((tab) => {
         const Icon = tab.icon;
         const isActive = activeSection === tab.id;
         const isHovered = hoveredTab === tab.id;
